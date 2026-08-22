@@ -170,7 +170,271 @@ export default function FarmerListings() {
 
   return (
     <>
-      <Header />
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import Header from '../../../components/common/Header';
+import api from '../../../services/api';
+import useAuthStore from '../../../store/authStore';
+import toast from 'react-hot-toast';
+import { useLanguage } from '../../../context/LanguageContext';
+import { HiOutlinePlus, HiOutlineDocumentReport, HiOutlineX } from 'react-icons/hi';
+
+import {
+  Search,
+  Heart,
+  MapPin,
+  ShoppingBasket,
+  Clock3,
+  CheckCircle2,
+  ChevronDown,
+  Grid2X2,
+  List,
+  RotateCcw,
+  Plus,
+  MoreVertical,
+  SlidersHorizontal,
+  CalendarDays,
+  PackageOpen,
+  Pencil,
+  Trash2,
+  XCircle,
+} from 'lucide-react';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+
+export default function FarmerListings() {
+  const router = useRouter();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+  const [viewMode, setViewMode] = useState('grid');
+  const [favorites, setFavorites] = useState([]);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [inspectionProduct, setInspectionProduct] = useState(null);
+
+  // Edit & Delete states
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [editProduct, setEditProduct] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    price: '',
+    quantity: '',
+    unit: 'kg',
+    location: '',
+    pincode: '',
+    description: '',
+  });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const { isAuthenticated, user, hydrate } = useAuthStore();
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== 'farmer') {
+      router.push('/login');
+      return;
+    }
+    const fetchProducts = async () => {
+      try {
+        const res = await api.get('/api/products/my');
+        setProducts(res.data || []);
+      } catch (error) {
+        console.error('Failed to load products:', error);
+        if (error.response?.status === 401) {
+          toast.error(t('common.sessionExpired'));
+          useAuthStore.getState().logout();
+          router.replace('/login');
+        } else {
+          toast.error(t('listings.failedLoad'));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [isAuthenticated, user, router, t]);
+
+  // Close three dots menu on click outside
+  useEffect(() => {
+    const handleOutsideClick = () => setActiveMenuId(null);
+    if (activeMenuId !== null) {
+      window.addEventListener('click', handleOutsideClick);
+    }
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, [activeMenuId]);
+
+  const getImage = (product) => {
+    const media = product.media || [];
+    const image = media.find((m) => m.media_type === 'image');
+    if (!image) return '';
+
+    const url = image.url;
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return `${API_BASE_URL}${cleanUrl}`;
+  };
+
+  const getCategory = (product) => {
+    return String(product.category_slug || '').toLowerCase();
+  };
+
+  const getStatusLabel = (status) => {
+    const statusMap = {
+      verified: 'Verified',
+      pending_inspection: 'Pending Inspection',
+      rejected: 'Rejected',
+      active: 'Active',
+      auction: 'In Auction',
+      sold: 'Sold',
+      completed: 'Completed',
+      canceled: 'Canceled',
+    };
+    return (
+      statusMap[status] ||
+      t(`listings.status_${status}`) ||
+      String(status || 'pending').replaceAll('_', ' ')
+    );
+  };
+
+  const getStatusClass = (status) => {
+    if (status === 'verified' || status === 'active') return 'status-active';
+    if (status === 'pending_inspection' || status === 'auction') return 'status-auction';
+    if (status === 'sold' || status === 'completed') return 'status-completed';
+    if (status === 'canceled') return 'status-canceled';
+    return 'status-rejected';
+  };
+
+  const handleOpenEdit = (product) => {
+    setActiveMenuId(null);
+    setEditProduct(product);
+    setEditForm({
+      name: product.name || '',
+      price: product.price ?? product.basePrice ?? '',
+      quantity: product.quantity || '',
+      unit: product.unit || 'kg',
+      location: product.location || '',
+      pincode: product.pincode || '',
+      description: product.description || '',
+    });
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!editProduct) return;
+    setSavingEdit(true);
+    try {
+      const payload = {
+        name: editForm.name,
+        price: Number(editForm.price),
+        quantity: Number(editForm.quantity),
+        unit: editForm.unit,
+        location: editForm.location,
+        pincode: editForm.pincode,
+        description: editForm.description,
+      };
+      await api.put(`/api/products/${editProduct.id}`, payload);
+      toast.success('Listing updated successfully');
+      setProducts((prev) =>
+        prev.map((p) => (p.id === editProduct.id ? { ...p, ...payload } : p))
+      );
+      setEditProduct(null);
+    } catch (error) {
+      console.error('Failed to update product:', error);
+      toast.error(error.response?.data?.detail || 'Failed to update listing');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    setActiveMenuId(null);
+    if (!window.confirm('Are you sure you want to delete this listing?')) {
+      return;
+    }
+    try {
+      await api.delete(`/api/products/${productId}`);
+      toast.success('Listing deleted successfully');
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+      toast.error(error.response?.data?.detail || 'Failed to delete listing');
+    }
+  };
+
+  const filteredProducts = useMemo(() => {
+    let result = [...products];
+
+    if (search.trim()) {
+      const query = search.toLowerCase();
+      result = result.filter((product) => {
+        const name = String(product.name || '').toLowerCase();
+        const location = String(product.location || '').toLowerCase();
+        const variety = String(product.variety || '').toLowerCase();
+        return name.includes(query) || location.includes(query) || variety.includes(query);
+      });
+    }
+
+    if (statusFilter !== 'all') {
+      result = result.filter((product) => {
+        if (statusFilter === 'sold') return product.status === 'sold' || product.status === 'completed';
+        return product.status === statusFilter;
+      });
+    }
+
+    if (categoryFilter !== 'all') {
+      result = result.filter((product) => {
+        const category = getCategory(product);
+        if (categoryFilter === 'vegetables') return category.includes('vegetable') || category.includes('भाजी');
+        if (categoryFilter === 'grains') return category.includes('grain') || category.includes('धान्य');
+        if (categoryFilter === 'fruits') return category.includes('fruit') || category.includes('फळ');
+        if (categoryFilter === 'pulses') return category.includes('pulse') || category.includes('dal') || category.includes('डाळ');
+        return true;
+      });
+    }
+
+    if (sortBy === 'newest') result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    if (sortBy === 'oldest') result.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    if (sortBy === 'name') result.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+    if (sortBy === 'priceLow') result.sort((a, b) => Number(a.price || a.basePrice || 0) - Number(b.price || b.basePrice || 0));
+    if (sortBy === 'priceHigh') result.sort((a, b) => Number(b.price || b.basePrice || 0) - Number(a.price || a.basePrice || 0));
+    if (sortBy === 'qtyHigh') result.sort((a, b) => Number(b.quantity || 0) - Number(a.quantity || 0));
+    if (sortBy === 'qtyLow') result.sort((a, b) => Number(a.quantity || 0) - Number(b.quantity || 0));
+
+    return result;
+  }, [products, search, statusFilter, categoryFilter, sortBy]);
+
+  const stats = useMemo(() => {
+    const total = products.length;
+    const verified = products.filter((p) => p.status === 'verified').length;
+    const pending = products.filter((p) => p.status === 'pending_inspection').length;
+    const completed = products.filter((p) => p.status === 'completed' || p.status === 'sold').length;
+    return { total, verified, pending, completed };
+  }, [products]);
+
+  const toggleFavorite = (id) => {
+    setFavorites((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  };
+
+  const clearFilters = () => {
+    setSearch('');
+    setStatusFilter('all');
+    setCategoryFilter('all');
+    setSortBy('newest');
+  };
+
+  return (
+    <>
+      <Header searchTerm={search} onSearchChange={setSearch} />
       <div className="listings-page">
         <main className="listing-container">
           <section className="page-heading">
@@ -226,20 +490,41 @@ export default function FarmerListings() {
             </Link>
           </section>
 
+          {/* Clickable Summary Stat Cards */}
           <section className="stats-grid">
-            <div className="stat-card stat-green">
+            <div 
+              className={`stat-card stat-green ${statusFilter === 'all' ? 'active-stat' : ''}`}
+              onClick={() => setStatusFilter('all')}
+              role="button"
+              tabIndex={0}
+            >
               <div className="stat-icon"><ShoppingBasket size={23} /></div>
               <div><span>Total Listings</span><strong>{stats.total}</strong></div>
             </div>
-            <div className="stat-card stat-orange">
+            <div 
+              className={`stat-card stat-orange ${statusFilter === 'verified' ? 'active-stat' : ''}`}
+              onClick={() => setStatusFilter(statusFilter === 'verified' ? 'all' : 'verified')}
+              role="button"
+              tabIndex={0}
+            >
               <div className="stat-icon"><CheckCircle2 size={23} /></div>
               <div><span>Verified</span><strong>{stats.verified}</strong></div>
             </div>
-            <div className="stat-card stat-purple">
+            <div 
+              className={`stat-card stat-purple ${statusFilter === 'pending_inspection' ? 'active-stat' : ''}`}
+              onClick={() => setStatusFilter(statusFilter === 'pending_inspection' ? 'all' : 'pending_inspection')}
+              role="button"
+              tabIndex={0}
+            >
               <div className="stat-icon"><Clock3 size={23} /></div>
               <div><span>Pending Inspection</span><strong>{stats.pending}</strong></div>
             </div>
-            <div className="stat-card stat-blue">
+            <div 
+              className={`stat-card stat-blue ${(statusFilter === 'sold' || statusFilter === 'completed') ? 'active-stat' : ''}`}
+              onClick={() => setStatusFilter(statusFilter === 'sold' ? 'all' : 'sold')}
+              role="button"
+              tabIndex={0}
+            >
               <div className="stat-icon"><CheckCircle2 size={23} /></div>
               <div><span>Completed</span><strong>{stats.completed}</strong></div>
             </div>
@@ -326,9 +611,12 @@ export default function FarmerListings() {
                   <div className="sort-box">
                     <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                       <option value="newest">Newest First</option>
-                      <option value="name">Name</option>
+                      <option value="oldest">Oldest First</option>
                       <option value="priceLow">Price: Low to High</option>
                       <option value="priceHigh">Price: High to Low</option>
+                      <option value="qtyHigh">Quantity: High to Low</option>
+                      <option value="qtyLow">Quantity: Low to High</option>
+                      <option value="name">Name: A to Z</option>
                     </select>
                     <ChevronDown size={15} />
                   </div>
@@ -426,7 +714,32 @@ export default function FarmerListings() {
                               </button>
                             )}
 
-                            <button className="more-button" aria-label="More options"><MoreVertical size={19} /></button>
+                            {/* Three Dots Menu Wrapper */}
+                            <div className="more-menu-wrapper" style={{ position: 'relative' }}>
+                              <button 
+                                className="more-button" 
+                                aria-label="More options"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveMenuId(activeMenuId === product.id ? null : product.id);
+                                }}
+                              >
+                                <MoreVertical size={19} />
+                              </button>
+
+                              {activeMenuId === product.id && (
+                                <div className="card-popover-menu" onClick={(e) => e.stopPropagation()}>
+                                  <button className="menu-item edit-item" onClick={() => handleOpenEdit(product)}>
+                                    <Pencil size={15} />
+                                    <span>Edit Listing</span>
+                                  </button>
+                                  <button className="menu-item delete-item" onClick={() => handleDeleteProduct(product.id)}>
+                                    <Trash2 size={15} />
+                                    <span>Delete Listing</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </article>
@@ -510,9 +823,264 @@ export default function FarmerListings() {
             </div>
           </div>
         )}
+
+        {/* Edit Produce Modal */}
+        {editProduct && (
+          <div className="report-modal-overlay" onClick={() => setEditProduct(null)}>
+            <div className="report-modal-card edit-modal-card" onClick={(e) => e.stopPropagation()}>
+              <div className="report-modal-header">
+                <h2>✏️ Edit Produce Listing</h2>
+                <button onClick={() => setEditProduct(null)}>
+                  <HiOutlineX size={20} />
+                </button>
+              </div>
+              <form onSubmit={handleSaveEdit} className="edit-modal-form">
+                <div className="form-group">
+                  <label>Product Name</label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Price (₹)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editForm.price}
+                      onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Quantity</label>
+                    <input
+                      type="number"
+                      value={editForm.quantity}
+                      onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Unit</label>
+                    <select
+                      value={editForm.unit}
+                      onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })}
+                    >
+                      <option value="kg">kg</option>
+                      <option value="quintal">quintal</option>
+                      <option value="ton">ton</option>
+                      <option value="piece">piece</option>
+                      <option value="bunch">bunch</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Location</label>
+                    <input
+                      type="text"
+                      value={editForm.location}
+                      onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Pincode</label>
+                    <input
+                      type="text"
+                      value={editForm.pincode}
+                      onChange={(e) => setEditForm({ ...editForm, pincode: e.target.value })}
+                      maxLength={6}
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea
+                    rows="3"
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  />
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="cancel-btn" onClick={() => setEditProduct(null)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="save-btn" disabled={savingEdit}>
+                    {savingEdit ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
 
       <style jsx>{`
+        * {
+          box-sizing: border-box;
+        }
+        .stat-card {
+          cursor: pointer;
+          user-select: none;
+        }
+        .stat-card.active-stat {
+          border: 2px solid #2d7d4e !important;
+          box-shadow: 0 10px 30px rgba(45, 125, 78, 0.2) !important;
+          transform: translateY(-3px) scale(1.02);
+        }
+        .more-menu-wrapper {
+          position: relative;
+        }
+        .card-popover-menu {
+          position: absolute;
+          right: 0;
+          bottom: 48px;
+          background: #ffffff;
+          border: 1px solid #dce6df;
+          border-radius: 14px;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+          padding: 6px;
+          z-index: 100;
+          min-width: 145px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .menu-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          padding: 10px 12px;
+          border: none;
+          background: transparent;
+          border-radius: 9px;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.2s, color 0.2s;
+        }
+        .edit-item {
+          color: #2b7d4c;
+        }
+        .edit-item:hover {
+          background: #eef7f0;
+        }
+        .delete-item {
+          color: #e63946;
+        }
+        .delete-item:hover {
+          background: #ffeef0;
+        }
+
+        .report-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 30, 20, 0.55);
+          backdrop-filter: blur(6px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          padding: 20px;
+        }
+        .report-modal-card {
+          background: #ffffff;
+          border-radius: 20px;
+          width: 100%;
+          max-width: 520px;
+          padding: 24px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        .report-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
+          border-bottom: 1px solid #edf2ee;
+          padding-bottom: 14px;
+        }
+        .report-modal-header h2 {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 800;
+          color: #1b3829;
+        }
+        .report-modal-header button {
+          border: none;
+          background: #f0f5f1;
+          border-radius: 50%;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #43544a;
+        }
+        .edit-modal-form {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .form-group label {
+          font-size: 12px;
+          font-weight: 800;
+          color: #2e4438;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+          width: 100%;
+          padding: 10px 14px;
+          border: 1px solid #d5e1d8;
+          border-radius: 10px;
+          font-size: 13px;
+          outline: none;
+          font-family: inherit;
+          color: #22352b;
+          background: #fbfdfc;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+          border-color: #2b7d4c;
+          background: #ffffff;
+        }
+        .form-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+          gap: 12px;
+        }
+        .modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 10px;
+        }
+        .cancel-btn {
+          padding: 10px 18px;
+          border: 1px solid #d5e1d8;
+          background: #f5f8f6;
+          color: #405247;
+          border-radius: 10px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .save-btn {
+          padding: 10px 22px;
+          border: none;
+          background: linear-gradient(135deg, #2d7d4e, #1f633d);
+          color: white;
+          border-radius: 10px;
+          font-weight: 800;
+          cursor: pointer;
+        }
         * {
           box-sizing: border-box;
         }

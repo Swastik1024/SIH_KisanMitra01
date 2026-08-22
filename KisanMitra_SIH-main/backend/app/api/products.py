@@ -8,7 +8,7 @@ from ..models.product import Product, ProductMedia, Category
 from ..models.user import User
 from ..models.auction import Auction, Bid
 from ..models.order import Order   # ✅ new import
-from ..schemas.product import ProductCreate, ProductOut, MediaUpload
+from ..schemas.product import ProductCreate, ProductOut, MediaUpload, ProductUpdate
 from ..core.deps import get_current_user, require_role
 
 router = APIRouter(prefix="/api/products", tags=["products"])
@@ -255,3 +255,55 @@ def upload_media(
     db.commit()
     db.refresh(product)
     return product
+
+@router.put("/{product_id}")
+def update_product(
+    product_id: int,
+    data: ProductUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if current_user.role not in ["farmer", "admin"]:
+        raise HTTPException(status_code=403, detail="Not allowed")
+    if current_user.role == "farmer" and product.farmer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your product")
+
+    if data.name is not None:
+        product.name = data.name
+    if data.description is not None:
+        product.description = data.description
+    if data.quantity is not None:
+        product.quantity = data.quantity
+    if data.unit is not None:
+        product.unit = data.unit
+    if data.price is not None:
+        product.price = data.price
+    if data.location is not None:
+        product.location = data.location
+    if data.pincode is not None:
+        product.pincode = data.pincode
+
+    db.commit()
+    db.refresh(product)
+    return {"message": "Product updated successfully", "product": product}
+
+@router.delete("/{product_id}")
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if current_user.role not in ["farmer", "admin"]:
+        raise HTTPException(status_code=403, detail="Not allowed")
+    if current_user.role == "farmer" and product.farmer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your product")
+
+    db.delete(product)
+    db.commit()
+    return {"message": "Product deleted successfully"}

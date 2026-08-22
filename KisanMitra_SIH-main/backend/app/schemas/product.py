@@ -23,6 +23,15 @@ class ProductCreate(BaseModel):
     auction_start_time: Optional[datetime] = None
     auction_end_time: Optional[datetime] = None
 
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    quantity: Optional[float] = None
+    unit: Optional[str] = None
+    price: Optional[float] = None
+    location: Optional[str] = None
+    pincode: Optional[str] = None
+
 class MediaUpload(BaseModel):
     media_type: str  # 'image' or 'video'
     url: str
