@@ -24,178 +24,6 @@ import {
   SlidersHorizontal,
   CalendarDays,
   PackageOpen,
-} from 'lucide-react';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-
-export default function FarmerListings() {
-  const router = useRouter();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-  const [viewMode, setViewMode] = useState('grid');
-  const [favorites, setFavorites] = useState([]);
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [inspectionProduct, setInspectionProduct] = useState(null);
-  const { isAuthenticated, user, hydrate } = useAuthStore();
-  const { t } = useLanguage();
-
-  useEffect(() => {
-    hydrate();
-  }, [hydrate]);
-
-  useEffect(() => {
-    if (!isAuthenticated || user?.role !== 'farmer') {
-      router.push('/login');
-      return;
-    }
-    const fetchProducts = async () => {
-      try {
-        const res = await api.get('/api/products/my');
-        setProducts(res.data || []);
-      } catch (error) {
-        console.error('Failed to load products:', error);
-        if (error.response?.status === 401) {
-          toast.error(t('common.sessionExpired'));
-          useAuthStore.getState().logout();
-          router.replace('/login');
-        } else {
-          toast.error(t('listings.failedLoad'));
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
-  }, [isAuthenticated, user, router, t]);
-
-  const getImage = (product) => {
-    const media = product.media || [];
-    const image = media.find((m) => m.media_type === 'image');
-    if (!image) return '';
-
-    const url = image.url;
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
-    return `${API_BASE_URL}${cleanUrl}`;
-  };
-
-  const getCategory = (product) => {
-    return String(product.category_slug || '').toLowerCase();
-  };
-
-  const getStatusLabel = (status) => {
-    const statusMap = {
-      verified: 'Verified',
-      pending_inspection: 'Pending Inspection',
-      rejected: 'Rejected',
-      active: 'Active',
-      auction: 'In Auction',
-      sold: 'Sold',
-      completed: 'Completed',
-      canceled: 'Canceled',
-    };
-    return (
-      statusMap[status] ||
-      t(`listings.status_${status}`) ||
-      String(status || 'pending').replaceAll('_', ' ')
-    );
-  };
-
-  const getStatusClass = (status) => {
-    if (status === 'verified' || status === 'active') return 'status-active';
-    if (status === 'pending_inspection' || status === 'auction') return 'status-auction';
-    if (status === 'sold' || status === 'completed') return 'status-completed';
-    if (status === 'canceled') return 'status-canceled';
-    return 'status-rejected';
-  };
-
-  const filteredProducts = useMemo(() => {
-    let result = [...products];
-
-    if (search.trim()) {
-      const query = search.toLowerCase();
-      result = result.filter((product) => {
-        const name = String(product.name || '').toLowerCase();
-        const location = String(product.location || '').toLowerCase();
-        const variety = String(product.variety || '').toLowerCase();
-        return name.includes(query) || location.includes(query) || variety.includes(query);
-      });
-    }
-
-    if (statusFilter !== 'all') {
-      result = result.filter((product) => product.status === statusFilter);
-    }
-
-    if (categoryFilter !== 'all') {
-      result = result.filter((product) => {
-        const category = getCategory(product);
-        if (categoryFilter === 'vegetables') return category.includes('vegetable') || category.includes('भाजी');
-        if (categoryFilter === 'grains') return category.includes('grain') || category.includes('धान्य');
-        if (categoryFilter === 'fruits') return category.includes('fruit') || category.includes('फळ');
-        if (categoryFilter === 'pulses') return category.includes('pulse') || category.includes('dal') || category.includes('डाळ');
-        return true;
-      });
-    }
-
-    if (sortBy === 'name') result.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-    if (sortBy === 'priceLow') result.sort((a, b) => Number(a.price || a.basePrice || 0) - Number(b.price || b.basePrice || 0));
-    if (sortBy === 'priceHigh') result.sort((a, b) => Number(b.price || b.basePrice || 0) - Number(a.price || a.basePrice || 0));
-
-    return result;
-  }, [products, search, statusFilter, categoryFilter, sortBy]);
-
-  const stats = useMemo(() => {
-    const total = products.length;
-    const verified = products.filter((p) => p.status === 'verified').length;
-    const pending = products.filter((p) => p.status === 'pending_inspection').length;
-    const completed = products.filter((p) => p.status === 'completed' || p.status === 'sold').length;
-    return { total, verified, pending, completed };
-  }, [products]);
-
-  const toggleFavorite = (id) => {
-    setFavorites((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
-  };
-
-  const clearFilters = () => {
-    setSearch('');
-    setStatusFilter('all');
-    setCategoryFilter('all');
-  };
-
-  return (
-    <>
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import Header from '../../../components/common/Header';
-import api from '../../../services/api';
-import useAuthStore from '../../../store/authStore';
-import toast from 'react-hot-toast';
-import { useLanguage } from '../../../context/LanguageContext';
-import { HiOutlinePlus, HiOutlineDocumentReport, HiOutlineX } from 'react-icons/hi';
-
-import {
-  Search,
-  Heart,
-  MapPin,
-  ShoppingBasket,
-  Clock3,
-  CheckCircle2,
-  ChevronDown,
-  Grid2X2,
-  List,
-  RotateCcw,
-  Plus,
-  MoreVertical,
-  SlidersHorizontal,
-  CalendarDays,
-  PackageOpen,
   Pencil,
   Trash2,
   XCircle,
@@ -923,6 +751,15 @@ export default function FarmerListings() {
         * {
           box-sizing: border-box;
         }
+        .buyer-info {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: #405047;
+          font-size: 12px;
+          font-weight: 700;
+          margin-bottom: 10px;
+        }
         .stat-card {
           cursor: pointer;
           user-select: none;
@@ -1080,18 +917,6 @@ export default function FarmerListings() {
           border-radius: 10px;
           font-weight: 800;
           cursor: pointer;
-        }
-        * {
-          box-sizing: border-box;
-        }
-        .buyer-info {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          color: #405047;
-          font-size: 12px;
-          font-weight: 700;
-          margin-bottom: 10px;
         }
 
         .listings-page {
@@ -1278,7 +1103,7 @@ export default function FarmerListings() {
           width: 32px;
           height: 32px;
           border: none;
-          border-radius: 9px;
+          border-radius: 99px;
           background: #eef6ef;
           color: #28774a;
           display: flex;
@@ -1968,17 +1793,11 @@ export default function FarmerListings() {
           .products-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
-
-          .main-content {
-            grid-template-columns: 255px minmax(0, 1fr);
-            gap: 20px;
-          }
         }
 
-        @media (max-width: 900px) {
-          .listing-container {
-            width: calc(100% - 32px);
-            padding-top: 100px;
+        @media (max-width: 992px) {
+          .stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
           .main-content {
@@ -1991,494 +1810,133 @@ export default function FarmerListings() {
 
           .mobile-filter-button {
             display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             width: 100%;
             height: 44px;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            border: 1px solid #d7e3da;
             background: white;
-            color: #28764a;
+            border: 1px solid #dce6df;
             border-radius: 12px;
-            font-family: inherit;
-            font-size: 12px;
-            font-weight: 800;
-            margin-bottom: 15px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(36, 74, 49, 0.04);
-          }
-
-          .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (max-width: 650px) {
-          .listings-page {
-            padding-bottom: 35px;
-          }
-
-          .listing-container {
-            width: calc(100% - 24px);
-            padding: 88px 0 0;
-          }
-
-          .page-heading {
-            align-items: flex-start;
-            gap: 12px;
             margin-bottom: 20px;
-          }
-
-          .heading-title {
-            gap: 9px;
-            align-items: center;
-          }
-
-          .heading-leaf {
-            width: 42px;
-            height: 42px;
-            min-width: 42px;
-            border-radius: 13px;
-            font-size: 22px;
-          }
-
-          .heading-title h1 {
-            font-size: 22px;
-            letter-spacing: -0.3px;
-          }
-
-          .heading-title p {
-            max-width: 180px;
-            margin-top: 4px;
-            font-size: 10px;
-            line-height: 1.5;
-          }
-
-          .mobile-add-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            background: linear-gradient(135deg, #f5a447, #ed9130);
-            color: white;
-            padding: 10px 13px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-size: 10px;
-            font-weight: 800;
-            white-space: nowrap;
-            box-shadow: 0 6px 15px rgba(237, 145, 48, 0.25);
-          }
-
-          .stats-grid {
-            gap: 9px;
-            margin-bottom: 15px;
-          }
-
-          .stat-card {
-            min-height: 73px;
-            padding: 10px;
-            border-radius: 13px;
-            gap: 8px;
-          }
-
-          .stat-icon {
-            width: 34px;
-            height: 34px;
-            min-width: 34px;
-            border-radius: 10px;
-          }
-
-          .stat-icon svg {
-            width: 17px;
-          }
-
-          .stat-card span {
-            font-size: 8px;
-            line-height: 1.25;
-          }
-
-          .stat-card strong {
-            margin-top: 3px;
-            font-size: 19px;
-          }
-
-          .mobile-filter-button {
-            height: 42px;
-            margin-bottom: 13px;
-          }
-
-          .products-toolbar {
-            flex-wrap: wrap;
-            gap: 9px;
-            margin-bottom: 13px;
-          }
-
-          .result-count {
-            font-size: 10px;
-          }
-
-          .result-count strong {
-            font-size: 16px;
-          }
-
-          .toolbar-actions {
-            margin-left: auto;
-            gap: 6px;
-          }
-
-          .sort-box {
-            width: 130px;
-            height: 37px;
-            border-radius: 9px;
-          }
-
-          .sort-box select {
-            font-size: 10px;
-            padding-left: 9px;
-          }
-
-          .sort-box svg {
-            top: 11px;
-            right: 7px;
-          }
-
-          .view-toggle {
-            height: 37px;
-            border-radius: 9px;
-            padding: 2px;
-          }
-
-          .view-toggle button {
-            width: 34px;
-          }
-
-          .products-grid {
-            grid-template-columns: 1fr;
-            gap: 14px;
-          }
-
-          .products-list {
-            gap: 14px;
-          }
-
-          .product-card {
-            border-radius: 16px;
-          }
-
-          .product-card:hover {
-            transform: none;
-          }
-
-          .product-image {
-            height: 205px;
-          }
-
-          .products-list .product-card {
-            display: block;
-          }
-
-          .products-list .product-image {
-            width: 100%;
-            min-width: 0;
-            height: 205px;
-          }
-
-          .product-info {
-            padding: 14px;
-          }
-
-          .product-name-row h3 {
-            font-size: 17px;
-          }
-
-          .product-location {
-            font-size: 10px;
-            margin-bottom: 12px;
-          }
-
-          .quantity {
-            font-size: 10px;
-          }
-
-          .product-price {
-            font-size: 15px;
-          }
-
-          .status-badge {
-            top: 9px;
-            left: 9px;
-            font-size: 9px;
-            padding: 6px 9px;
-          }
-
-          .favorite-button {
-            width: 36px;
-            height: 36px;
-            right: 9px;
-            top: 9px;
-          }
-
-          .product-actions {
-            gap: 7px;
-          }
-
-          .details-button,
-          .more-button,
-          .report-button {
-            height: 39px;
-          }
-
-          .empty-state {
-            min-height: 350px;
-            padding: 25px 18px;
-            border-radius: 17px;
-          }
-
-          .empty-icon {
-            width: 68px;
-            height: 68px;
-            border-radius: 20px;
+            color: #2b7d4c;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
           }
 
           .mobile-filter-overlay {
+            display: flex;
             position: fixed;
             inset: 0;
-            z-index: 9999;
-            background: rgba(20, 35, 27, 0.48);
-            display: flex;
-            align-items: flex-end;
-            backdrop-filter: blur(3px);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 999;
           }
 
           .mobile-filter-drawer {
-            width: 100%;
-            background: #fbfdfb;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
             border-radius: 24px 24px 0 0;
-            max-height: 84vh;
+            padding: 24px;
+            max-height: 80vh;
             display: flex;
             flex-direction: column;
-            animation: slideUp 0.25s ease;
-            box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.15);
-          }
-
-          @keyframes slideUp {
-            from {
-              transform: translateY(100%);
-            }
-            to {
-              transform: translateY(0);
-            }
           }
 
           .drawer-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 18px 18px 14px;
-            border-bottom: 1px solid #e8eee9;
+            margin-bottom: 20px;
           }
 
           .drawer-header h2 {
             margin: 0;
-            color: #254132;
             font-size: 18px;
             font-weight: 800;
           }
 
           .drawer-header button {
-            width: 34px;
-            height: 34px;
             border: none;
-            border-radius: 50%;
-            background: #edf3ee;
-            color: #526158;
-            font-size: 22px;
+            background: none;
+            font-size: 24px;
             cursor: pointer;
           }
 
           .drawer-content {
+            flex: 1;
             overflow-y: auto;
-            padding: 20px 18px;
           }
 
           .mobile-status-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 9px;
+            gap: 10px;
           }
 
           .filter-option {
-            min-height: 43px;
-            border: 1px solid #dce5df;
+            padding: 10px;
+            border: 1px solid #dce6df;
             border-radius: 10px;
-            background: white;
-            color: #506058;
-            font-family: inherit;
-            font-size: 11px;
+            background: #f9fbf9;
+            color: #536159;
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
+            text-align: center;
           }
 
           .filter-option.selected {
-            background: #e8f5e9;
-            border-color: #77aa86;
-            color: #217447;
+            background: #eef7f0;
+            border-color: #2b7d4c;
+            color: #2b7d4c;
             font-weight: 800;
           }
 
           .drawer-actions {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 9px;
-            padding: 13px 18px;
-            border-top: 1px solid #e8eee9;
-            background: white;
-          }
-
-          .drawer-clear,
-          .drawer-apply {
-            height: 44px;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 11px;
-            font-weight: 800;
-            cursor: pointer;
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
           }
 
           .drawer-clear {
-            border: 1px solid #d7e3da;
-            background: white;
-            color: #267649;
+            flex: 1;
+            height: 44px;
+            border: 1px solid #dce6df;
+            background: #f8fbf8;
+            border-radius: 11px;
+            color: #536159;
+            font-weight: 700;
           }
 
           .drawer-apply {
+            flex: 2;
+            height: 44px;
             border: none;
-            background: linear-gradient(135deg, #2d7d4e, #1f633d);
+            background: linear-gradient(135deg, #2d7c4e, #1f633d);
             color: white;
+            border-radius: 11px;
+            font-weight: 800;
           }
         }
 
-        @media (max-width: 380px) {
-          .listing-container {
-            width: calc(100% - 18px);
+        @media (max-width: 640px) {
+          .stats-grid {
+            grid-template-columns: 1fr;
           }
 
-          .heading-title h1 {
-            font-size: 20px;
+          .products-grid {
+            grid-template-columns: 1fr;
           }
 
-          .heading-title p {
-            font-size: 9px;
+          .page-heading {
+            flex-direction: column;
+            align-items: flex-start;
           }
-
-          .mobile-add-button {
-            padding: 9px 10px;
-            font-size: 9px;
-          }
-
-          .stat-card {
-            padding: 8px;
-          }
-
-          .stat-card strong {
-            font-size: 17px;
-          }
-
-          .sort-box {
-            width: 112px;
-          }
-
-          .product-image {
-            height: 190px;
-          }
-        }
-
-        /* REPORT MODAL */
-        .report-modal-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 10000;
-          background: rgba(20, 35, 27, 0.55);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 16px;
-          backdrop-filter: blur(4px);
-        }
-
-        .report-modal-card {
-          background: #fff;
-          border-radius: 20px;
-          max-width: 600px;
-          width: 100%;
-          max-height: 85vh;
-          overflow-y: auto;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-        }
-
-        .report-modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px 24px;
-          border-bottom: 1px solid #e8eee9;
-        }
-
-        .report-modal-header h2 {
-          margin: 0;
-          color: #173b2a;
-          font-size: 20px;
-          font-weight: 800;
-        }
-
-        .report-modal-header button {
-          width: 36px;
-          height: 36px;
-          border: none;
-          border-radius: 50%;
-          background: #f0f4f1;
-          color: #526058;
-          cursor: pointer;
-        }
-
-        .report-modal-body {
-          padding: 20px 24px;
-          color: #526058;
-          font-size: 14px;
-          line-height: 1.6;
-        }
-
-        .report-modal-body p {
-          margin: 8px 0;
-        }
-
-        .report-params {
-          margin-top: 16px;
-          background: #f9fbfa;
-          border-radius: 12px;
-          padding: 16px;
-        }
-
-        .report-params h3 {
-          margin: 0 0 10px;
-          color: #173b2a;
-          font-size: 16px;
-          font-weight: 800;
-        }
-
-        .param-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 6px 0;
-          border-bottom: 1px solid #e9efeb;
-        }
-
-        .param-row span {
-          text-transform: capitalize;
-        }
-
-        .param-row strong {
-          color: #173b2a;
         }
       `}</style>
     </>
