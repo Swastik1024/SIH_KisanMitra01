@@ -34,6 +34,7 @@ export default {
     showingProducts: '{count} उत्पाद दिखाए जा रहे हैं',
   },
   auth: {
+    register: 'पंजीकरण',
     loginTitle: 'किसानमित्र में लॉगिन करें',
     registerTitle: 'किसानमित्र खाता बनाएं',
     email: 'ईमेल पता',

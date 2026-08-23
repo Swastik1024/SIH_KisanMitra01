@@ -34,6 +34,7 @@ export default {
     showingProducts: '{count} পণ্য দেখানো হচ্ছে',
   },
   auth: {
+    register: 'নিবন্ধন',
     loginTitle: 'খেতিকার্টে লগইন করুন',
     registerTitle: 'খেতিকার্ট অ্যাকাউন্ট তৈরি করুন',
     email: 'ইমেল ঠিকানা',

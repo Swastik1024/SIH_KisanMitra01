@@ -455,7 +455,7 @@ export default function CheckoutPage() {
 
               {platformFee > 0 && (
                 <div style={styles.summaryRow}>
-                  <span>Platform Fee (2% min ₹100)</span>
+                  <span>Platform Fee <span style={{ fontSize: '12px', color: '#636e72', fontWeight: '400' }}>(2% min ₹100)</span></span>
                   <span>₹{platformFee}</span>
                 </div>
               )}

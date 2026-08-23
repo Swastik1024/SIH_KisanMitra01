@@ -34,6 +34,7 @@ export default {
     showingProducts: '{count} பொருட்கள் காட்டப்படுகின்றன',
   },
   auth: {
+    register: 'பதிவு',
     loginTitle: 'கேதிகார்ட்டில் உள்நுழைக',
     registerTitle: 'கேதிகார்ட் கணக்கை உருவாக்கு',
     email: 'மின்னஞ்சல் முகவரி',

@@ -34,6 +34,7 @@ export default {
     showingProducts: '{count} ઉત્પાદનો બતાવવામાં આવે છે',
   },
   auth: {
+    register: 'નોંધણી',
     loginTitle: 'ખેતીકાર્ટમાં લોગિન કરો',
     registerTitle: 'ખેતીકાર્ટ એકાઉન્ટ બનાવો',
     email: 'ઇમેઇલ સરનામું',

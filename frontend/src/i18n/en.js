@@ -34,6 +34,7 @@ export default {
     showingProducts: 'Showing {count} products',
   },
   auth: {
+    register: 'Register',
     loginTitle: 'Login to KisanMitra',
     registerTitle: 'Create KisanMitra Account',
     email: 'Email Address',

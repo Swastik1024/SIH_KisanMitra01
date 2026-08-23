@@ -34,6 +34,7 @@ export default {
     showingProducts: '{count} ಉತ್ಪನ್ನಗಳನ್ನು ತೋರಿಸಲಾಗುತ್ತಿದೆ',
   },
   auth: {
+    register: 'ನೋಂದಣಿ',
     loginTitle: 'ಖೇತಿಕಾರ್ಟ್‌ಗೆ ಲಾಗಿನ್ ಮಾಡಿ',
     registerTitle: 'ಖೇತಿಕಾರ್ಟ್ ಖಾತೆ ರಚಿಸಿ',
     email: 'ಇಮೇಲ್ ವಿಳಾಸ',

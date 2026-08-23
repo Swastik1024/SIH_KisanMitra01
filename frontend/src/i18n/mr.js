@@ -34,6 +34,7 @@ export default {
     showingProducts: '{count} उत्पादने दाखवली जात आहेत',
   },
   auth: {
+    register: 'नोंदणी',
     loginTitle: 'खेतीकार्टमध्ये लॉगिन करा',
     registerTitle: 'खेतीकार्ट खाते तयार करा',
     email: 'ईमेल पत्ता',

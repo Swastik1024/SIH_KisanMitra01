@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import api from '../services/api';
@@ -26,6 +26,7 @@ export default function Register() {
     farmer_card: '',
     trading_licence: '',
   });
+  const [reviewingDoc, setReviewingDoc] = useState(null);
 
   const [form, setForm] = useState({
     name: '',
@@ -358,34 +359,28 @@ export default function Register() {
                     label="Aadhaar Card"
                     field="aadhar_document"
                     form={form}
-                    setForm={setForm}
                     uploading={documentsUploading.aadhar}
-                    setUploading={(val) => setDocumentsUploading(prev => ({...prev, aadhar: val}))}
                     preview={documentPreview.aadhar}
-                    setPreview={(val) => setDocumentPreview(prev => ({...prev, aadhar: val}))}
                     handleDocumentUpload={handleDocumentUpload}
+                    onReview={(title, url) => setReviewingDoc({ title, url })}
                   />
                   <DocumentUploadField
                     label="PAN Card"
                     field="pan_document"
                     form={form}
-                    setForm={setForm}
                     uploading={documentsUploading.pan}
-                    setUploading={(val) => setDocumentsUploading(prev => ({...prev, pan: val}))}
                     preview={documentPreview.pan}
-                    setPreview={(val) => setDocumentPreview(prev => ({...prev, pan: val}))}
                     handleDocumentUpload={handleDocumentUpload}
+                    onReview={(title, url) => setReviewingDoc({ title, url })}
                   />
                   <DocumentUploadField
                     label="Farmer Card"
                     field="farmer_card_document"
                     form={form}
-                    setForm={setForm}
                     uploading={documentsUploading.farmer_card}
-                    setUploading={(val) => setDocumentsUploading(prev => ({...prev, farmer_card: val}))}
                     preview={documentPreview.farmer_card}
-                    setPreview={(val) => setDocumentPreview(prev => ({...prev, farmer_card: val}))}
                     handleDocumentUpload={handleDocumentUpload}
+                    onReview={(title, url) => setReviewingDoc({ title, url })}
                   />
                 </>
               ) : (
@@ -394,34 +389,28 @@ export default function Register() {
                     label="Aadhaar Card"
                     field="aadhar_document"
                     form={form}
-                    setForm={setForm}
                     uploading={documentsUploading.aadhar}
-                    setUploading={(val) => setDocumentsUploading(prev => ({...prev, aadhar: val}))}
                     preview={documentPreview.aadhar}
-                    setPreview={(val) => setDocumentPreview(prev => ({...prev, aadhar: val}))}
                     handleDocumentUpload={handleDocumentUpload}
+                    onReview={(title, url) => setReviewingDoc({ title, url })}
                   />
                   <DocumentUploadField
                     label="PAN Card"
                     field="pan_document"
                     form={form}
-                    setForm={setForm}
                     uploading={documentsUploading.pan}
-                    setUploading={(val) => setDocumentsUploading(prev => ({...prev, pan: val}))}
                     preview={documentPreview.pan}
-                    setPreview={(val) => setDocumentPreview(prev => ({...prev, pan: val}))}
                     handleDocumentUpload={handleDocumentUpload}
+                    onReview={(title, url) => setReviewingDoc({ title, url })}
                   />
                   <DocumentUploadField
                     label="Trading Licence"
                     field="trading_licence_document"
                     form={form}
-                    setForm={setForm}
                     uploading={documentsUploading.trading_licence}
-                    setUploading={(val) => setDocumentsUploading(prev => ({...prev, trading_licence: val}))}
                     preview={documentPreview.trading_licence}
-                    setPreview={(val) => setDocumentPreview(prev => ({...prev, trading_licence: val}))}
                     handleDocumentUpload={handleDocumentUpload}
+                    onReview={(title, url) => setReviewingDoc({ title, url })}
                   />
                 </>
               )}
@@ -497,7 +486,7 @@ export default function Register() {
                 color: 'white', border: 'none', borderRadius: '50px', fontSize: '16px', fontWeight: '700', cursor: 'pointer',
                 boxShadow: '0 8px 20px rgba(45,106,79,0.3)'
               }}>
-                {t('auth.register')}
+                {t('auth.register') || t('common.register') || 'Register'}
               </button>
             </div>
           </form>
@@ -510,16 +499,120 @@ export default function Register() {
           </Link>
         </p>
       </div>
+
+      {/* Document Review Modal */}
+      {reviewingDoc && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+          backdropFilter: 'blur(4px)'
+        }} onClick={() => setReviewingDoc(null)}>
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '24px',
+            maxWidth: '520px',
+            width: '100%',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+            overflow: 'hidden'
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                📄 Review {reviewingDoc.title}
+              </h3>
+              <button type="button" onClick={() => setReviewingDoc(null)} style={{
+                background: '#f1f3f5',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '16px',
+                color: '#495057',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#f8f9fa', borderRadius: '12px', padding: '16px', minHeight: '200px' }}>
+              {reviewingDoc.url ? (
+                <img
+                  src={reviewingDoc.url}
+                  alt={reviewingDoc.title}
+                  style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain', borderRadius: '8px' }}
+                />
+              ) : (
+                <p style={{ color: '#6c757d', fontSize: '14px' }}>No document image available to preview.</p>
+              )}
+            </div>
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setReviewingDoc(null)} style={{
+                padding: '10px 24px',
+                borderRadius: '50px',
+                background: '#2d6a4f',
+                color: 'white',
+                border: 'none',
+                fontWeight: '600',
+                fontSize: '14px',
+                cursor: 'pointer'
+              }}>
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // Document upload field component
-function DocumentUploadField({ label, field, form, setForm, uploading, setUploading, preview, setPreview, handleDocumentUpload }) {
+function DocumentUploadField({ label, field, form, uploading, preview, handleDocumentUpload, onReview }) {
+  const isUploaded = Boolean(preview || form[field]);
+  const docUrl = preview || (form[field] ? (form[field].startsWith('http') ? form[field] : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}${form[field]}`) : '');
+
   return (
-    <div style={{ marginBottom: '12px' }}>
-      <label style={{ fontSize: '13px', fontWeight: '600', color: '#2d3436', display: 'block', marginBottom: '5px' }}>{label}</label>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <div style={{
+      marginBottom: '14px',
+      padding: '12px 14px',
+      borderRadius: '12px',
+      border: isUploaded ? '1.5px solid #2d6a4f' : '1px solid #e9ecef',
+      background: isUploaded ? '#f4fbf7' : '#f8f9fa',
+      transition: 'all 0.2s ease'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <span style={{ fontSize: '13px', fontWeight: '600', color: '#2d3436' }}>{label}</span>
+        {isUploaded && (
+          <span style={{
+            fontSize: '12px',
+            fontWeight: '700',
+            color: '#2d6a4f',
+            background: '#d8f3dc',
+            padding: '3px 10px',
+            borderRadius: '20px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}>
+            ✓ Uploaded
+          </span>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <input
           type="file"
           accept="image/*"
@@ -530,22 +623,67 @@ function DocumentUploadField({ label, field, form, setForm, uploading, setUpload
           style={{ display: 'none' }}
           id={`file-${field}`}
         />
+
         <label htmlFor={`file-${field}`} style={{
           padding: '8px 16px',
           borderRadius: '50px',
-          border: '2px solid #2d6a4f',
-          background: 'transparent',
+          border: isUploaded ? '1px solid #95d5b2' : '2px solid #2d6a4f',
+          background: isUploaded ? 'white' : 'transparent',
           color: '#2d6a4f',
           fontWeight: '600',
           cursor: 'pointer',
           fontSize: '13px',
           whiteSpace: 'nowrap',
-          opacity: uploading ? 0.6 : 1
+          opacity: uploading ? 0.6 : 1,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px'
         }}>
-          {uploading ? 'Uploading...' : preview ? 'Change' : 'Upload'}
+          {uploading ? 'Uploading...' : isUploaded ? '🔄 Change File' : '📤 Upload'}
         </label>
-        {preview && (
-          <img src={preview} alt={label} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px' }} />
+
+        {isUploaded && (
+          <>
+            <button
+              type="button"
+              onClick={() => onReview && onReview(label, docUrl)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '50px',
+                border: '1px solid #2d6a4f',
+                background: '#2d6a4f',
+                color: 'white',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '13px',
+                whiteSpace: 'nowrap',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 6px rgba(45,106,79,0.2)'
+              }}
+            >
+              👁️ Review
+            </button>
+
+            {docUrl && (
+              <img
+                src={docUrl}
+                alt={label}
+                onClick={() => onReview && onReview(label, docUrl)}
+                title="Click to review document"
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  objectFit: 'cover',
+                  borderRadius: '6px',
+                  border: '1px solid #b7e4c7',
+                  cursor: 'pointer',
+                  marginLeft: 'auto'
+                }}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

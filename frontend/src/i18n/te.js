@@ -34,7 +34,8 @@ export default {
     showingProducts: '{count} ఉత్పత్తులు చూపబడుతున్నాయి',
   },
   auth: {
-    loginTitle: 'ఖేతీకార్ట్‌లో లాగిన్ చేయండి',
+    register: 'నమోదు',
+    loginTitle: 'ఖేతీకార్ట్‌లో లాగిన్ అవ్వండి',
     registerTitle: 'ఖేతీకార్ట్ ఖాతాను సృష్టించండి',
     email: 'ఇమెయిల్ చిరునామా',
     password: 'పాస్‌వర్డ్',
