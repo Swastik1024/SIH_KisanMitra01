@@ -11,7 +11,9 @@ import {
   HiOutlineCheck,
   HiOutlineClipboardCheck,
   HiOutlineEye,
+  HiOutlineSparkles,
 } from 'react-icons/hi';
+import AiInspectionModal from '../../../components/common/AiInspectionModal';
 
 const PARAMETERS_BY_CATEGORY = {
   grains: [
@@ -57,6 +59,34 @@ export default function AgentInspections() {
   });
   const [formParameters, setFormParameters] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
+
+  const handleApplyAiResults = (aiResult) => {
+    if (!aiResult) return;
+    setForm((prev) => ({
+      ...prev,
+      quality_grade: aiResult.quality_grade || 'A+',
+      final_base_price: aiResult.final_base_price || prev.final_base_price,
+      recommendations: aiResult.recommendations || prev.recommendations,
+      notes: aiResult.notes || prev.notes,
+    }));
+
+    if (selectedProduct) {
+      const cat = selectedProduct.category_slug || '';
+      const fields = PARAMETERS_BY_CATEGORY[cat] || [];
+      const updatedParams = { ...formParameters };
+      fields.forEach((f) => {
+        if (f.toLowerCase().includes('moisture')) updatedParams[f] = `${aiResult.moisture}%`;
+        else if (f.toLowerCase().includes('freshness')) updatedParams[f] = `${aiResult.freshness_score}%`;
+        else if (f.toLowerCase().includes('defect') || f.toLowerCase().includes('rot') || f.toLowerCase().includes('damage')) updatedParams[f] = `${aiResult.defect_rate}%`;
+        else if (f.toLowerCase().includes('uniform') || f.toLowerCase().includes('size')) updatedParams[f] = aiResult.size_uniformity;
+        else if (f.toLowerCase().includes('color')) updatedParams[f] = aiResult.color_ripeness;
+        else updatedParams[f] = 'Verified Pass';
+      });
+      setFormParameters(updatedParams);
+      toast.success('AI Quality Assessment applied to inspection form!');
+    }
+  };
 
   const fetchInspections = useCallback(async () => {
     try {
@@ -265,6 +295,24 @@ export default function AgentInspections() {
                 </div>
               )}
 
+              {!readOnly && (
+                <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowAiModal(true)}
+                    style={{
+                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                      color: '#ffffff', border: 'none', borderRadius: '10px', padding: '8px 16px',
+                      fontSize: '13px', fontWeight: '700', cursor: 'pointer',
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      boxShadow: '0 4px 12px rgba(5,150,105,0.25)'
+                    }}
+                  >
+                    ✨ Run AI Auto-Inspection
+                  </button>
+                </div>
+              )}
+
               {/* Step Indicator */}
               <div style={styles.stepIndicator}>
                 {['Parameters', 'Grade & Price', 'Review & Submit'].map((label, index) => (
@@ -428,6 +476,13 @@ export default function AgentInspections() {
               </form>
             </div>
           </div>
+        )}
+        {showAiModal && (
+          <AiInspectionModal
+            product={selectedProduct}
+            onApply={handleApplyAiResults}
+            onClose={() => setShowAiModal(false)}
+          />
         )}
       </main>
     </>

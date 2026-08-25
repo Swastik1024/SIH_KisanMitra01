@@ -16,12 +16,14 @@ async def upload_file(
 ):
     try:
         # Optional validation
-        if not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="Only image files are allowed")
+        allowed_types = ("image/", "video/")
+        if not any(file.content_type.startswith(t) for t in allowed_types):
+            raise HTTPException(status_code=400, detail="Only image and video files are allowed")
 
         file_ext = file.filename.split(".")[-1].lower()
-        if file_ext not in ["jpg", "jpeg", "png", "gif", "webp"]:
-            raise HTTPException(status_code=400, detail="Unsupported image format")
+        allowed_exts = ["jpg", "jpeg", "png", "gif", "webp", "mp4", "webm", "mov", "avi", "mkv"]
+        if file_ext not in allowed_exts:
+            raise HTTPException(status_code=400, detail="Unsupported file format")
 
         unique_name = f"{uuid.uuid4()}.{file_ext}"
         file_path = os.path.join(UPLOAD_DIR, unique_name)

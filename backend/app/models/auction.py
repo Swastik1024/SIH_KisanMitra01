@@ -36,6 +36,7 @@ class Bid(Base):
     bid_amount = Column(Float, nullable=False)
     bid_time = Column(DateTime(timezone=True), server_default=func.now())
     is_winning = Column(Boolean, default=False)
+    status = Column(String(20), default='pending')  # pending, accepted, rejected
 
     auction = relationship("Auction", back_populates="bids")
     bidder = relationship("User", back_populates="bids")

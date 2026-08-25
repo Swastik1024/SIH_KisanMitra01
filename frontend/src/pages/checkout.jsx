@@ -74,7 +74,18 @@ export default function CheckoutPage() {
   const fetchProduct = useCallback(async () => {
     try {
       const res = await api.get(`/api/products/${product_id}`);
-      setProduct(res.data);
+      const data = res.data;
+      const isAuction = data.auction_type && data.auction_type !== 'fixed_price' && data.auction_type !== 'fixed';
+      if (isAuction) {
+        toast.error('Auction products cannot be purchased directly. Please place a bid in the live auction.');
+        if (data.auction?.id) {
+          router.push(`/dashboard/trader/auction/${data.auction.id}`);
+        } else {
+          router.push('/dashboard/trader');
+        }
+        return;
+      }
+      setProduct(data);
     } catch (error) {
       console.error('Failed to fetch product:', error);
       toast.error('Product not found');

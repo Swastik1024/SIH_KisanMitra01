@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from typing import List
 import json
 
+from datetime import datetime, timezone, timedelta
+from pydantic import BaseModel
+
 from ..database import get_db
 from ..models.product import Product, ProductMedia, Category
 from ..models.user import User
@@ -111,7 +114,15 @@ def get_my_products(
                 "final_base_price": p.inspection_report.final_base_price if p.inspection_report else None,
                 "recommendations": p.inspection_report.recommendations if p.inspection_report else None,
                 "notes": p.inspection_report.notes if p.inspection_report else None,
-                "inspection_data": json.loads(p.inspection_report.inspection_data) if p.inspection_report and p.inspection_report.inspection_data else {},
+                "inspection_data": (
+                    p.inspection_report.inspection_data
+                    if isinstance(getattr(p.inspection_report, "inspection_data", None), dict)
+                    else (
+                        json.loads(p.inspection_report.inspection_data)
+                        if p.inspection_report and p.inspection_report.inspection_data and isinstance(p.inspection_report.inspection_data, str)
+                        else {}
+                    )
+                ),
             },
             "buyer_name": buyer_name,   # ✅ added
         })
@@ -133,8 +144,16 @@ def get_available_products(
         joinedload(Product.auction),
     ).filter(Product.status.in_(["verified", "listed", "active"])).all()
 
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     result = []
     for p in products:
+        is_auction = p.auction_type and p.auction_type not in ["fixed", "fixed_price"]
+        if is_auction and p.auction:
+            if p.auction.end_time and now > p.auction.end_time:
+                continue
+            if p.auction.status in ["ended", "completed", "cancelled"]:
+                continue
+
         image_url = None
         if p.media:
             image_url = p.media[0].url
@@ -153,6 +172,8 @@ def get_available_products(
             "image": image_url,
             "auction_type": p.auction_type,
             "current_highest_bid": p.auction.current_highest_bid if p.auction else None,
+            "end_time": p.auction.end_time.isoformat() if p.auction and p.auction.end_time else None,
+            "start_time": p.auction.start_time.isoformat() if p.auction and p.auction.start_time else None,
         })
 
     return result
@@ -185,7 +206,13 @@ def get_product(
     inspection_report = product.inspection_report
     inspection_data = {}
     if inspection_report and inspection_report.inspection_data:
-        inspection_data = json.loads(inspection_report.inspection_data)
+        if isinstance(inspection_report.inspection_data, dict):
+            inspection_data = inspection_report.inspection_data
+        elif isinstance(inspection_report.inspection_data, str):
+            try:
+                inspection_data = json.loads(inspection_report.inspection_data)
+            except Exception:
+                inspection_data = {}
 
     bids = []
     if product.auction and product.auction.bids:
@@ -224,11 +251,88 @@ def get_product(
             "final_base_price": inspection_report.final_base_price if inspection_report else None,
             "recommendations": inspection_report.recommendations if inspection_report else None,
             "notes": inspection_report.notes if inspection_report else None,
+            "freshness_score": inspection_report.freshness_score if inspection_report else None,
+            "defect_rate": inspection_report.defect_rate if inspection_report else None,
             "inspection_data": inspection_data,
-        },
+        } if inspection_report else None,
         "bids": bids,
-        "buyer_name": buyer_name,   # ✅ added
+        "buyer_name": buyer_name,
+        "auction_id": product.auction.id if product.auction else None,
+        "end_time": product.auction.end_time.isoformat() if product.auction and product.auction.end_time else None,
+        "start_time": product.auction.start_time.isoformat() if product.auction and product.auction.start_time else None,
     }
+
+class ProductBidRequest(BaseModel):
+    bid_amount: float
+
+@router.post("/{product_id}/bid")
+def place_product_bid(
+    product_id: int,
+    bid_data: ProductBidRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("trader"))
+):
+    product = db.query(Product).options(joinedload(Product.auction)).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if not product.auction:
+        raise HTTPException(status_code=400, detail="Product does not have an active auction")
+    
+    auction = product.auction
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    if auction.end_time and now > auction.end_time:
+        auction.status = "ended"
+        db.commit()
+        raise HTTPException(status_code=400, detail="Auction has ended")
+    
+    if auction.status in ["scheduled", "active", "live"]:
+        if auction.status != "live":
+            auction.status = "live"
+            if auction.start_time > now:
+                auction.start_time = now
+    else:
+        raise HTTPException(status_code=400, detail="Auction is not active")
+    
+    if current_user.id == auction.farmer_id:
+        raise HTTPException(status_code=400, detail="Farmers cannot bid on their own produce")
+
+    previous_highest_bidder_id = auction.current_highest_bidder_id
+
+    if auction.current_highest_bid is not None and bid_data.bid_amount <= auction.current_highest_bid:
+        raise HTTPException(status_code=400, detail=f"Bid must be higher than current bid (₹{auction.current_highest_bid})")
+    if bid_data.bid_amount < auction.base_price:
+        raise HTTPException(status_code=400, detail=f"Bid must be at least base price (₹{auction.base_price})")
+    
+    if auction.current_highest_bid is not None and bid_data.bid_amount < auction.current_highest_bid + auction.min_bid_increment:
+        raise HTTPException(status_code=400, detail=f"Bid must be at least ₹{auction.min_bid_increment} more than current bid")
+    
+    if auction.auto_extension_enabled and auction.end_time - now <= timedelta(minutes=2):
+        auction.end_time = now + timedelta(minutes=5)
+    
+    bid = Bid(
+        auction_id=auction.id,
+        bidder_id=current_user.id,
+        bid_amount=bid_data.bid_amount,
+        is_winning=True
+    )
+    # Reset winning flag on older bids
+    db.query(Bid).filter(Bid.auction_id == auction.id).update({"is_winning": False})
+    db.add(bid)
+    auction.current_highest_bid = bid_data.bid_amount
+    auction.current_highest_bidder_id = current_user.id
+
+    if previous_highest_bidder_id and previous_highest_bidder_id != current_user.id:
+        from ..models.notification import Notification
+        db.add(Notification(
+            user_id=previous_highest_bidder_id,
+            type="outbid_alert",
+            message=f"You have been outbid on '{product.name}'. The new highest bid is ₹{bid_data.bid_amount}."
+        ))
+
+    db.commit()
+    db.refresh(bid)
+    return {"message": "Bid placed successfully", "bid_amount": bid.bid_amount, "bid_id": bid.id}
+
 
 @router.post("/{product_id}/media", response_model=ProductOut)
 def upload_media(
@@ -288,7 +392,14 @@ def update_product(
 
     db.commit()
     db.refresh(product)
-    return {"message": "Product updated successfully", "product": product}
+    return {
+        "message": "Product updated successfully",
+        "product_id": product.id,
+        "name": product.name,
+        "price": product.price,
+        "quantity": product.quantity,
+        "unit": product.unit
+    }
 
 @router.delete("/{product_id}")
 def delete_product(

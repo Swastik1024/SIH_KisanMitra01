@@ -66,9 +66,24 @@ def place_bid(
         raise HTTPException(status_code=404, detail="Auction not found")
     
     now = datetime.now(timezone.utc).replace(tzinfo=None)
-    if auction.status != "live" or now < auction.start_time or now > auction.end_time:
+    if auction.end_time and now > auction.end_time:
+        auction.status = "ended"
+        db.commit()
+        raise HTTPException(status_code=400, detail="Auction has ended")
+    
+    if auction.status in ["scheduled", "active", "live"]:
+        if auction.status != "live":
+            auction.status = "live"
+            if auction.start_time > now:
+                auction.start_time = now
+    else:
         raise HTTPException(status_code=400, detail="Auction is not active")
     
+    if current_user.id == auction.farmer_id:
+        raise HTTPException(status_code=400, detail="Farmers cannot bid on their own produce")
+
+    previous_highest_bidder_id = auction.current_highest_bidder_id
+
     if auction.current_highest_bid is not None and bid_data.bid_amount <= auction.current_highest_bid:
         raise HTTPException(status_code=400, detail="Bid must be higher than current bid")
     if bid_data.bid_amount < auction.base_price:
@@ -89,11 +104,21 @@ def place_bid(
     db.add(bid)
     auction.current_highest_bid = bid_data.bid_amount
     auction.current_highest_bidder_id = current_user.id
-    db.commit()
-    db.refresh(bid)
     
+    # Reset winning flag on older bids
     db.query(Bid).filter(Bid.auction_id == auction_id).update({"is_winning": False})
     bid.is_winning = True
+
+    # Send Outbid Notification to Previous Highest Bidder if different
+    if previous_highest_bidder_id and previous_highest_bidder_id != current_user.id:
+        from ..models.notification import Notification
+        prod_name = auction.product.name if auction.product else "Crop"
+        db.add(Notification(
+            user_id=previous_highest_bidder_id,
+            type="outbid_alert",
+            message=f"You have been outbid on '{prod_name}'. The new highest bid is ₹{bid_data.bid_amount}."
+        ))
+
     db.commit()
     db.refresh(bid)
     return bid

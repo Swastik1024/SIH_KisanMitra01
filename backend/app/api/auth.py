@@ -52,8 +52,8 @@ def create_user_common(db: Session, user_data: dict, role: str) -> User:
 
 @router.post("/register/farmer", response_model=TokenResponse)
 def register_farmer(data: FarmerRegister, db: Session = Depends(get_db)):
-    if not is_otp_verified(data.email, db) or not is_otp_verified(data.phone, db):
-        raise HTTPException(status_code=400, detail="Email and phone must be verified via OTP")
+    if not is_otp_verified(data.email, db):
+        raise HTTPException(status_code=400, detail="Email must be verified via OTP")
 
     user = create_user_common(db, {
         "name": data.name,
@@ -77,7 +77,7 @@ def register_farmer(data: FarmerRegister, db: Session = Depends(get_db)):
 
     # Delete used OTP verifications
     db.query(OtpVerification).filter(
-        OtpVerification.contact.in_([data.email, data.phone]),
+        OtpVerification.contact == data.email,
         OtpVerification.is_verified == True
     ).delete(synchronize_session=False)
     db.commit()
@@ -93,8 +93,8 @@ def register_farmer(data: FarmerRegister, db: Session = Depends(get_db)):
 
 @router.post("/register/trader", response_model=TokenResponse)
 def register_trader(data: TraderRegister, db: Session = Depends(get_db)):
-    if not is_otp_verified(data.email, db) or not is_otp_verified(data.phone, db):
-        raise HTTPException(status_code=400, detail="Email and phone must be verified via OTP")
+    if not is_otp_verified(data.email, db):
+        raise HTTPException(status_code=400, detail="Email must be verified via OTP")
 
     user = create_user_common(db, {
         "name": data.name,
@@ -121,7 +121,7 @@ def register_trader(data: TraderRegister, db: Session = Depends(get_db)):
 
     # Delete used OTP verifications
     db.query(OtpVerification).filter(
-        OtpVerification.contact.in_([data.email, data.phone]),
+        OtpVerification.contact == data.email,
         OtpVerification.is_verified == True
     ).delete(synchronize_session=False)
     db.commit()
@@ -148,6 +148,53 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         "user_id": user.id,
         "name": user.name
     }
+
+class GoogleLoginRequest(BaseModel):
+    credential: str  # Google ID token (JWT) from frontend
+
+@router.post("/google-login")
+def google_login(data: GoogleLoginRequest, db: Session = Depends(get_db)):
+    """Accept Google user info string (sub|email|name) and return our app JWT."""
+    try:
+        parts = data.credential.split('|', 2)
+        if len(parts) < 2:
+            raise ValueError("Invalid format")
+        google_email = parts[1].strip()
+        google_name = parts[2].strip() if len(parts) > 2 and parts[2].strip() else google_email.split("@")[0]
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid Google credential format")
+
+    if not google_email or "@" not in google_email:
+        raise HTTPException(status_code=400, detail="Could not retrieve email from Google account")
+
+    # Find existing user or auto-create as farmer
+    user = db.query(User).filter(User.email == google_email).first()
+    if not user:
+        import secrets
+        random_pw = secrets.token_hex(16)
+        user = User(
+            name=google_name,
+            email=google_email,
+            phone="",
+            password_hash=hash_password(random_pw),
+            role="farmer",
+            is_active=True,
+            language="en",
+            location=""
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    token = create_access_token({"sub": str(user.id), "role": user.role})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "role": user.role,
+        "user_id": user.id,
+        "name": user.name
+    }
+
 
 @router.post("/forgot-password")
 def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
@@ -177,7 +224,7 @@ def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     # For demo, print OTP; real email integration can be added later
     print(f"Password reset OTP for {data.email}: {otp}")
 
-    return {"message": "OTP sent to email"}
+    return {"message": "OTP sent to email", "otp": otp}
 
 @router.post("/reset-password")
 def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
@@ -234,13 +281,24 @@ def change_password(
     if not any(c in "@$!%*?&#" for c in password):
         raise HTTPException(status_code=400, detail="Password must contain a special character")
 
-    current_user.password_hash = hash_password(new_password)
+    current_user.password_hash = hash_password(data.new_password)
     db.commit()
     return {"message": "Password updated successfully"}
 
 @router.get("/me", response_model=UserOut)
 def read_current_user(current_user: User = Depends(get_current_user)):
     return current_user
+
+@router.post("/verify-token")
+def verify_token(current_user: User = Depends(get_current_user)):
+    return {
+        "valid": True,
+        "user_id": current_user.id,
+        "email": current_user.email,
+        "name": current_user.name,
+        "role": current_user.role,
+        "verified": current_user.verified
+    }
 
 @router.post("/admin/agents", response_model=TokenResponse)
 def create_agent(data: AgentCreate, db: Session = Depends(get_db), admin: User = Depends(require_role("admin"))):

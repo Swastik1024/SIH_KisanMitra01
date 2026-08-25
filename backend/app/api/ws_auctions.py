@@ -97,8 +97,14 @@ async def auction_websocket(websocket: WebSocket, auction_id: int):
                     if auction.status != "live" or now < auction.start_time or now > auction.end_time:
                         await websocket.send_json({"type": "error", "message": "Auction not active"})
                         continue
+                    if user_id == auction.farmer_id:
+                        await websocket.send_json({"type": "error", "message": "Farmers cannot bid on their own produce"})
+                        continue
+
+                    previous_bidder_id = auction.current_highest_bidder_id
+
                     if auction.current_highest_bid and bid_amount <= auction.current_highest_bid:
-                        await websocket.send_json({"type": "error", "message": "Bid must be higher than current"})
+                        await websocket.send_json({"type": "error", "message": "Bid must be higher than current highest bid"})
                         continue
                     if bid_amount < auction.base_price:
                         await websocket.send_json({"type": "error", "message": "Bid below base price"})
@@ -120,6 +126,17 @@ async def auction_websocket(websocket: WebSocket, auction_id: int):
                     db.query(Bid).filter(Bid.auction_id == auction_id).update({"is_winning": False})
                     auction.current_highest_bid = bid_amount
                     auction.current_highest_bidder_id = user_id
+
+                    # Create outbid notification if there was a previous bidder
+                    if previous_bidder_id and previous_bidder_id != user_id:
+                        from ..models.notification import Notification
+                        prod_name = auction.product.name if auction.product else "Crop"
+                        db.add(Notification(
+                            user_id=previous_bidder_id,
+                            type="outbid_alert",
+                            message=f"You have been outbid on '{prod_name}'. New highest bid is ₹{bid_amount}."
+                        ))
+
                     db.commit()
                     db.refresh(bid)
                     await manager.broadcast_to_auction(auction_id, {

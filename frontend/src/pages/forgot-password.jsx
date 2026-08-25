@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 import { useLanguage } from '../context/LanguageContext';
 
+import { sendOtpEmail } from '../services/emailService';
+
 export default function ForgotPassword() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -43,9 +45,12 @@ export default function ForgotPassword() {
     }
     setLoading(true);
     try {
-      await api.post('/api/auth/forgot-password', { email });
+      const res = await api.post('/api/auth/forgot-password', { email });
       setOtpSent(true);
       setStep(2);
+      if (res.data?.otp) {
+        sendOtpEmail(email, res.data.otp);
+      }
       toast.success('OTP sent to email');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to send OTP');

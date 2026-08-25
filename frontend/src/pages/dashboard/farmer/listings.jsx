@@ -7,6 +7,7 @@ import useAuthStore from '../../../store/authStore';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../../context/LanguageContext';
 import { HiOutlinePlus, HiOutlineDocumentReport, HiOutlineX } from 'react-icons/hi';
+import FarmerBidsSelectionModal from '../../../components/common/FarmerBidsSelectionModal';
 
 import {
   Search,
@@ -43,6 +44,7 @@ export default function FarmerListings() {
   const [favorites, setFavorites] = useState([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [inspectionProduct, setInspectionProduct] = useState(null);
+  const [selectedAuctionId, setSelectedAuctionId] = useState(null);
 
   // Edit & Delete states
   const [activeMenuId, setActiveMenuId] = useState(null);
@@ -528,6 +530,19 @@ export default function FarmerListings() {
                               Details
                             </button>
 
+                            {product.auction && (
+                              <button
+                                className="report-button"
+                                style={{ backgroundColor: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedAuctionId(product.auction.id);
+                                }}
+                              >
+                                🤝 Review Bids ({product.auction.bids?.length || 0})
+                              </button>
+                            )}
+
                             {product.inspection_report && (
                               <button
                                 className="report-button"
@@ -744,6 +759,17 @@ export default function FarmerListings() {
               </form>
             </div>
           </div>
+        )}
+
+        {selectedAuctionId && (
+          <FarmerBidsSelectionModal
+            auctionId={selectedAuctionId}
+            onClose={() => setSelectedAuctionId(null)}
+            onAccepted={() => {
+              // Refresh products list
+              api.get('/api/products/my').then((res) => setProducts(res.data || []));
+            }}
+          />
         )}
       </div>
 

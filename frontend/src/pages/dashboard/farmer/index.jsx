@@ -269,6 +269,43 @@ export default function FarmerHome() {
         </motion.div>
       </section>
 
+      {/* INTELLIGENCE & ADVISORY SUITE */}
+      <section style={{ maxWidth: '1200px', margin: '10px auto 30px', padding: '0 20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+          <Link href="/weather-alerts" style={{ textDecoration: 'none' }}>
+            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #bbf7d0', cursor: 'pointer', transition: 'transform 0.2s' }}>
+              <div style={{ fontSize: '28px', marginBottom: '6px' }}>⛅</div>
+              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#1b4332' }}>Weather &amp; Farm Alerts</h4>
+              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Hyperlocal 5-day crop advisory &amp; rain warnings</p>
+            </div>
+          </Link>
+
+          <Link href="/price-intelligence" style={{ textDecoration: 'none' }}>
+            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #bfdbfe', cursor: 'pointer', transition: 'transform 0.2s' }}>
+              <div style={{ fontSize: '28px', marginBottom: '6px' }}>📈</div>
+              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#0d3b66' }}>Predictive Price Intelligence</h4>
+              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>AI trajectory model for optimal selling date</p>
+            </div>
+          </Link>
+
+          <Link href="/mandi-network" style={{ textDecoration: 'none' }}>
+            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0', cursor: 'pointer', transition: 'transform 0.2s' }}>
+              <div style={{ fontSize: '28px', marginBottom: '6px' }}>🏛️</div>
+              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#2b2d42' }}>e-NAM Mandi Network</h4>
+              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Pan-India APMC live arrival &amp; price data</p>
+            </div>
+          </Link>
+
+          <Link href="/apmc-benchmark" style={{ textDecoration: 'none' }}>
+            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #fde68a', cursor: 'pointer', transition: 'transform 0.2s' }}>
+              <div style={{ fontSize: '28px', marginBottom: '6px' }}>📊</div>
+              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#4a3b32' }}>Live APMC Benchmark Rates</h4>
+              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Daily official modal prices &amp; min-max spread</p>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* CATEGORIES */}
       <div className="categories-wrapper" id="categories">
         <motion.div 

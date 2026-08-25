@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 import { useLanguage } from '../context/LanguageContext';
 
+import { sendOtpEmail } from '../services/emailService';
+
 export default function Register() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -72,9 +74,15 @@ export default function Register() {
         toast.error(t('auth.enterContact', { type }));
         return;
       }
-      await api.post('/api/auth/otp/send', { contact });
-      if (type === 'email') setOtpEmailSent(true);
-      else setOtpPhoneSent(true);
+      const res = await api.post('/api/auth/otp/send', { contact });
+      if (type === 'email') {
+        setOtpEmailSent(true);
+        if (res.data?.otp) {
+          sendOtpEmail(contact, res.data.otp);
+        }
+      } else {
+        setOtpPhoneSent(true);
+      }
       toast.success(t('auth.otpSent', { contact }));
     } catch (error) {
       toast.error(error.response?.data?.detail || t('auth.otpSendFailed'));
@@ -99,13 +107,9 @@ export default function Register() {
     }
   };
 
-  const handleNextFromStep2 = async () => {
+  const handleNextFromStep2 = () => {
     if (!form.phone) {
       toast.error(t('auth.enterPhone'));
-      return;
-    }
-    if (!form.otp_phone) {
-      toast.error(t('auth.enterPhoneOtp'));
       return;
     }
     if (!form.location) {
@@ -116,13 +120,26 @@ export default function Register() {
       toast.error(t('auth.enterLicence'));
       return;
     }
-    try {
-      await api.post('/api/auth/otp/verify', { contact: form.phone, otp: form.otp_phone });
-      toast.success(t('auth.phoneVerified'));
-      setStep(3);
-    } catch (error) {
-      toast.error(t('auth.invalidPhoneOtp'));
+
+    // Document upload validation
+    if (!form.aadhar_document) {
+      toast.error('Please upload your Aadhaar Card');
+      return;
     }
+    if (!form.pan_document) {
+      toast.error('Please upload your PAN Card');
+      return;
+    }
+    if (role === 'farmer' && !form.farmer_card_document) {
+      toast.error('Please upload your Farmer Card');
+      return;
+    }
+    if (role === 'trader' && !form.trading_licence_document) {
+      toast.error('Please upload your Trading Licence document');
+      return;
+    }
+
+    setStep(3);
   };
 
   const handleDocumentUpload = async (field, file) => {
@@ -162,12 +179,47 @@ export default function Register() {
       const payload = { ...form };
       delete payload.confirmPassword;
 
+      // Step 1: Register user
       if (role === 'farmer') {
         await api.post('/api/auth/register/farmer', payload);
       } else {
         await api.post('/api/auth/register/trader', payload);
       }
-      toast.success(t('auth.registrationSuccess'));
+
+      toast.success('Registration successful! Verifying your documents with AI...');
+
+      // Step 2: Auto-login to get token for doc verification
+      const loginRes = await api.post('/api/auth/login', {
+        email: form.email,
+        password: form.password,
+      });
+      const { access_token } = loginRes.data;
+      localStorage.setItem('token', access_token);
+
+      // Step 3: Call AI doc verification
+      const verifyPayload = { role };
+      if (role === 'farmer') {
+        verifyPayload.aadhar_url = form.aadhar_document;
+        verifyPayload.pan_url = form.pan_document;
+        verifyPayload.farmer_card_url = form.farmer_card_document;
+      } else {
+        verifyPayload.aadhar_url = form.aadhar_document;
+        verifyPayload.pan_url = form.pan_document;
+        verifyPayload.trading_licence_url = form.trading_licence_document;
+      }
+
+      const verifyRes = await api.post('/api/doc-verify/verify', verifyPayload, {
+        headers: { Authorization: `Bearer ${access_token}` },
+      });
+
+      if (verifyRes.data.all_verified) {
+        toast.success('✅ All documents verified by AI! Profile is now verified.');
+      } else {
+        toast.error('⚠️ Some documents could not be verified. Admin will review.');
+      }
+
+      // Clear token and redirect to login
+      localStorage.removeItem('token');
       router.push('/login');
     } catch (error) {
       toast.error(error.response?.data?.detail || t('auth.registrationFailed'));
@@ -308,21 +360,10 @@ export default function Register() {
           <div style={{ textAlign: 'left' }}>
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#2d3436', marginBottom: '8px' }}>{t('auth.phone')}</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="+91 98765 43210" style={{ ...inputStyle, flex: 1 }}
-                  onFocus={(e) => e.target.style.borderColor = '#2d6a4f'}
-                  onBlur={(e) => e.target.style.borderColor = '#e9ecef'} />
-                <button type="button" onClick={() => handleSendOtp('phone')} style={otpButtonStyle} disabled={otpPhoneSent}>
-                  {otpPhoneSent ? '✓' : t('auth.sendOtp')}
-                </button>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#2d3436', marginBottom: '8px' }}>{t('auth.enterPhoneOtp')}</label>
-              <input type="text" value={form.otp_phone} onChange={(e) => setForm({ ...form, otp_phone: e.target.value })}
-                placeholder={t('auth.otpPlaceholder')} style={inputStyle} maxLength={6} />
+              <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="+91 98765 43210" style={inputStyle}
+                onFocus={(e) => e.target.style.borderColor = '#2d6a4f'}
+                onBlur={(e) => e.target.style.borderColor = '#e9ecef'} />
             </div>
 
             <div style={{ marginBottom: '16px' }}>

@@ -135,3 +135,140 @@ def get_farmer_transactions(
     # Sort by date descending
     transactions.sort(key=lambda x: x.created_at, reverse=True)
     return transactions
+
+@router.get("/auctions/{auction_id}/bids")
+def get_farmer_auction_bids(
+    auction_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("farmer"))
+):
+    from ..models.auction import Auction, Bid
+    auction = db.query(Auction).filter(
+        Auction.id == auction_id,
+        Auction.farmer_id == current_user.id
+    ).first()
+    
+    if not auction:
+        raise HTTPException(status_code=404, detail="Auction not found or not owned by farmer")
+
+    bids = db.query(Bid).filter(Bid.auction_id == auction_id).order_by(Bid.bid_amount.desc()).all()
+    
+    res = []
+    for b in bids:
+        bidder = b.bidder
+        res.append({
+            "id": b.id,
+            "auction_id": b.auction_id,
+            "bidder_id": b.bidder_id,
+            "bidder_name": bidder.name if bidder else f"Trader #{b.bidder_id}",
+            "bidder_phone": bidder.phone if bidder else "",
+            "bid_amount": b.bid_amount,
+            "bid_time": b.bid_time.strftime("%b %d, %Y %I:%M %p") if b.bid_time else None,
+            "is_winning": b.is_winning,
+            "status": getattr(b, "status", "pending") or "pending"
+        })
+        
+    return {
+        "auction_id": auction.id,
+        "product_name": auction.product.name if auction.product else "Crop",
+        "base_price": auction.base_price,
+        "reserve_price": auction.reserve_price,
+        "status": auction.status,
+        "bids": res
+    }
+
+@router.post("/bids/{bid_id}/accept")
+def accept_trader_bid_offer(
+    bid_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("farmer"))
+):
+    from ..models.auction import Auction, Bid
+    from ..models.notification import Notification
+
+    bid = db.query(Bid).filter(Bid.id == bid_id).first()
+    if not bid:
+        raise HTTPException(status_code=404, detail="Bid not found")
+
+    auction = db.query(Auction).filter(
+        Auction.id == bid.auction_id,
+        Auction.farmer_id == current_user.id
+    ).first()
+
+    if not auction:
+        raise HTTPException(status_code=403, detail="Not authorized to accept bids for this crop auction")
+
+    if auction.status == "sold" or auction.status == "accepted":
+        raise HTTPException(status_code=400, detail="Offer already accepted for this auction")
+
+    # Mark all bids for this auction
+    db.query(Bid).filter(Bid.auction_id == auction.id).update({"is_winning": False, "status": "rejected"})
+    
+    bid.is_winning = True
+    bid.status = "accepted"
+
+    auction.current_highest_bid = bid.bid_amount
+    auction.current_highest_bidder_id = bid.bidder_id
+    auction.status = "accepted"
+
+    if auction.product:
+        auction.product.status = "sold"
+
+    # Create Order
+    existing_order = db.query(Order).filter(Order.auction_id == auction.id).first()
+    if not existing_order:
+        order = Order(
+            product_id=auction.product_id,
+            auction_id=auction.id,
+            trader_id=bid.bidder_id,
+            agent_id=auction.agent_id,
+            quantity=auction.product.quantity if auction.product else 1.0,
+            total_price=bid.bid_amount,
+            status="pending",
+            payment_status="pending"
+        )
+        db.add(order)
+        db.flush()
+        order_id = order.id
+    else:
+        order_id = existing_order.id
+
+    # Notify Trader
+    prod_name = auction.product.name if auction.product else "Crop"
+    db.add(Notification(
+        user_id=bid.bidder_id,
+        type="offer_accepted",
+        message=f"🎉 Offer Accepted! Farmer accepted your bid of ₹{bid.bid_amount} for '{prod_name}'. Order #{order_id} generated for delivery."
+    ))
+
+    db.commit()
+
+    return {
+        "message": f"Bid offer of ₹{bid.bid_amount} accepted successfully!",
+        "order_id": order_id,
+        "auction_status": "accepted"
+    }
+
+@router.post("/bids/{bid_id}/reject")
+def reject_trader_bid_offer(
+    bid_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("farmer"))
+):
+    from ..models.auction import Auction, Bid
+    bid = db.query(Bid).filter(Bid.id == bid_id).first()
+    if not bid:
+        raise HTTPException(status_code=404, detail="Bid not found")
+
+    auction = db.query(Auction).filter(
+        Auction.id == bid.auction_id,
+        Auction.farmer_id == current_user.id
+    ).first()
+
+    if not auction:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    bid.status = "rejected"
+    db.commit()
+
+    return {"message": "Bid offer rejected"}

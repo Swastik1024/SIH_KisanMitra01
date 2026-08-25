@@ -39,7 +39,7 @@ def send_otp(data: SendOtpRequest, db: Session = Depends(get_db)):
     # from ..services.sms_service import send_sms
     # send_sms(data.contact, f"Your KetiKart OTP is {otp}")
 
-    return {"message": "OTP sent successfully"}
+    return {"message": "OTP sent successfully", "otp": otp}
 
 @router.post("/verify")
 def verify_otp(data: VerifyOtpRequest, db: Session = Depends(get_db)):
