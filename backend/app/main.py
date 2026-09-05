@@ -78,6 +78,8 @@ app.add_middleware(
 )
 
 # Mount static files (for uploads)
+import os
+os.makedirs("storage", exist_ok=True)
 app.mount("/static", StaticFiles(directory="storage"), name="static")
 
 # Include API routers
