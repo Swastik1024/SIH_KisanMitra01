@@ -162,11 +162,13 @@ export default function WeatherAlertsPage() {
                     alignItems: 'center',
                     gap: '8px',
                     transition: 'transform 0.15s ease, boxShadow 0.15s ease'
+                  }}
                   onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
                   onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                 >
                   <HiOutlineRefresh style={{ fontSize: '18px' }} /> Update Forecast
                 </button>
+
               </form>
             </div>
           </div>

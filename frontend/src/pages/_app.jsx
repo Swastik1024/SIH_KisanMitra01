@@ -38,10 +38,11 @@ export default function App({ Component, pageProps }) {
   const router = useRouter();
   const hydrate = useAuthStore((state) => state.hydrate);
   const [mounted, setMounted] = useState(false);
-
+  useEffect(() => {
     hydrate();
     setMounted(true);
   }, [hydrate]);
+
 
 
   return (

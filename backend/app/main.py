@@ -27,8 +27,31 @@ from .api import support
 from .api import ai_inspection, price_prediction, mandi, weather_advisory, db_management, notifications
 from .api import doc_verify
 
+from sqlalchemy import text
+
 # Create database tables if they don't exist
 Base.metadata.create_all(bind=engine)
+
+# Ensure backwards-compatible columns exist in SQLite database
+try:
+    with engine.begin() as conn:
+        if settings.DATABASE_URL.startswith("sqlite"):
+            # users table columns
+            user_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(users)")).fetchall()]
+            if "is_active" not in user_cols:
+                conn.execute(text("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT 1"))
+            if "pincode" not in user_cols:
+                conn.execute(text("ALTER TABLE users ADD COLUMN pincode VARCHAR(6)"))
+            if "language" not in user_cols:
+                conn.execute(text("ALTER TABLE users ADD COLUMN language VARCHAR(10) DEFAULT 'en'"))
+                
+            # products table columns
+            prod_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(products)")).fetchall()]
+            if "is_active" not in prod_cols and "products" in prod_cols:
+                pass
+except Exception as e:
+    print(f"[DB Auto-Migration] Notice: {e}")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
