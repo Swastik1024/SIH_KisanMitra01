@@ -56,10 +56,10 @@ async def auction_websocket(websocket: WebSocket, auction_id: int):
         await websocket.close(code=1008)
         return
     user_id = int(payload.get("sub"))
-    role = payload.get("role")
-    if role not in ["trader", "farmer", "agent", "admin"]:
+    if role not in ["trader", "farmer", "admin"]:
         await websocket.close(code=1008)
         return
+
 
     db = SessionLocal()
     try:
