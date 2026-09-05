@@ -1,6 +1,6 @@
-# 🌾 KhetiKart — Smart Agricultural Marketplace & Trading Ecosystem
+# 🌾 KisanMitra — Smart Agricultural Marketplace & Trading Ecosystem
 
-An end-to-end, full-stack digital agricultural marketplace built with **Next.js 16** (Frontend) and **FastAPI** (Backend). KhetiKart empowers farmers with real-time bidding/auctions, dynamic Mandi price intelligence, AI-assisted produce quality grading, verified trader escrow payments, and multilingual support in 8 Indian languages.
+An end-to-end, full-stack digital agricultural marketplace built with **Next.js 16** (Frontend) and **FastAPI** (Backend). KisanMitra empowers farmers with real-time bidding/auctions, dynamic Mandi price intelligence, AI-assisted produce quality grading, verified trader escrow payments, and multilingual support in 8 Indian languages.
 
 ---
 
@@ -8,7 +8,7 @@ An end-to-end, full-stack digital agricultural marketplace built with **Next.js 
 
 - 👨‍🌾 **Farmer Dashboard**: Direct crop listings, auction management, live bidding monitoring, automated reserve pricing, and digital wallet earnings.
 - 🏪 **Trader Marketplace**: Browse fresh farm listings, place competitive real-time auction bids, instant purchase options, and secured escrow checkout with Razorpay.
-- 🛡️ **Escrow Payments & Security**: Buyer funds are securely held in KhetiKart Escrow and released only upon delivery verification with auto-generated PDF tax invoices.
+- 🛡️ **Escrow Payments & Security**: Buyer funds are securely held in KisanMitra Escrow and released only upon delivery verification with auto-generated PDF tax invoices.
 - 🏛️ **e-NAM & Mandi Integration**: Live Agmarknet/e-NAM Mandi benchmark rates and commodity arrivals across 1,000+ APMCs in India.
 - 🤖 **AI-Powered Quality Grading**: Automated produce inspection and quality grading based on moisture, texture, defect analysis, and market benchmarks.
 - 🌦️ **Agronomic Weather & Advisories**: Hyperlocal weather forecasts, soil condition alerts, and dynamic crop disease prevention tips.
@@ -84,9 +84,9 @@ Frontend web application will be live at: `http://localhost:3000`
 
 | Role | Email | Password |
 | :--- | :--- | :--- |
-| **System Admin** | `admin@khetikart.com` | `Admin@1234` |
-| **Farmer (Demo)** | `farmer@khetikart.com` | `Farmer@1234` |
-| **Trader (Demo)** | `trader@khetikart.com` | `Trader@1234` |
+| **System Admin** | `admin@kisanmitra.com` | `Admin@1234` |
+| **Farmer (Demo)** | `farmer@kisanmitra.com` | `Farmer@1234` |
+| **Trader (Demo)** | `trader@kisanmitra.com` | `Trader@1234` |
 
 ---
 

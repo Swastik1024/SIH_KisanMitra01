@@ -26,12 +26,11 @@ export default function Header({ searchTerm = '', onSearchChange }) {
             <div className="logo-icon">🌾</div>
             <div>
               <div className="logo-text">
-                Kheti<span>Kart</span>
+                Kisan<span>Mitra</span>
               </div>
               <div className="logo-sub">{t('header.logoSub') || 'Farmer to Trader'}</div>
             </div>
           </Link>
-
 
           {/* QUICK NAV LINKS */}
           <nav className="header-nav" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>

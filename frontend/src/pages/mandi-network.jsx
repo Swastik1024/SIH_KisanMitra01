@@ -8,8 +8,7 @@ export default function MandiNetworkPage() {
   return (
     <>
       <Head>
-        <title>e-NAM & Agmarknet Mandi Network | KhetiKart</title>
-
+        <title>e-NAM & Agmarknet Mandi Network | KisanMitra</title>
         <meta name="description" content="Live e-NAM and Agmarknet APMC Mandi rates, state-wise commodity prices, and benchmark arrivals" />
       </Head>
 
@@ -98,7 +97,7 @@ export default function MandiNetworkPage() {
               <div>
                 <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#2b2d42' }}>Grade-Based Indexing</h4>
                 <p style={{ fontSize: '13px', color: '#666', margin: 0, lineHeight: '1.4' }}>
-                  Transparent modal pricing mapped to moisture and quality grades certified by KhetiKart.
+                  Transparent modal pricing mapped to moisture and quality grades certified by KisanMitra.
                 </p>
               </div>
             </div>

@@ -145,7 +145,7 @@ def verify_payment(
     db.add(Notification(
         user_id=order.trader_id,
         type="payment_success",
-        message=f"Payment of ₹{order.total_price} for Order #{order.id} captured into KhetiKart Escrow."
+        message=f"Payment of ₹{order.total_price} for Order #{order.id} captured into KisanMitra Escrow."
     ))
     if order.product and order.product.farmer_id:
         db.add(Notification(
@@ -157,7 +157,7 @@ def verify_payment(
     db.commit()
 
     return {
-        "message": "Payment verified and funds placed into KhetiKart Escrow!",
+        "message": "Payment verified and funds placed into KisanMitra Escrow!",
         "order_id": order.id,
         "payment_status": "held",
         "escrow_amount": order.total_price,

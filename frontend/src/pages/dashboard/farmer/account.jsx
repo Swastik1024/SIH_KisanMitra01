@@ -87,7 +87,7 @@ export default function FarmerWallet() {
           </Link>
 
           <div style={styles.titleSection}>
-            <p style={styles.badge}>KHETIKART</p>
+            <p style={styles.badge}>KISAN MITRA</p>
             <h1 style={styles.title}>My Wallet</h1>
             <p style={styles.subtitle}>Manage your earnings and transaction history</p>
           </div>

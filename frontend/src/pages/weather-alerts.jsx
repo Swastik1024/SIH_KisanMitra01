@@ -23,7 +23,7 @@ export default function WeatherAlertsPage() {
   return (
     <>
       <Head>
-        <title>Agronomic Weather & Farm Alerts | KhetiKart</title>
+        <title>Agronomic Weather & Farm Alerts | KisanMitra</title>
         <meta name="description" content="Hyperlocal agricultural weather forecasts and AI-powered agronomic crop advisories" />
       </Head>
 

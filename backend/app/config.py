@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
-    PROJECT_NAME = "KhetiKart"
+    PROJECT_NAME = "AgriMart"
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./agrimart.db")
     SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
     ALGORITHM = "HS256"
