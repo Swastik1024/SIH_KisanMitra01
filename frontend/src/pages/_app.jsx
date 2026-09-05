@@ -39,16 +39,14 @@ export default function App({ Component, pageProps }) {
   const hydrate = useAuthStore((state) => state.hydrate);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
     hydrate();
+    setMounted(true);
   }, [hydrate]);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <LanguageProvider>
+      <div id="google_translate_element" style={{ display: 'none' }} />
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={router.asPath}

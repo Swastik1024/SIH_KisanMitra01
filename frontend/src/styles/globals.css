@@ -228,17 +228,19 @@ a {
    ========================================================= */
 
 .language-select {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  color: white;
-  padding: 6px 10px;
+  min-width: 128px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #1f2937;
+  padding: 8px 12px;
   border-radius: 50px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
   outline: none;
   cursor: pointer;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  margin-right: 8px;
+  white-space: nowrap;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.12);
   transition: var(--transition);
 }
 
@@ -248,8 +250,8 @@ a {
 }
 
 .hero-header.scrolled .language-select {
-  background: rgba(255, 255, 255, 0.25);
-  color: white;
+  background: #ffffff;
+  color: #1f2937;
 }
 
 /* =========================================================
@@ -1104,4 +1106,32 @@ a:focus-visible,
 select:focus-visible {
   outline: 3px solid rgba(244, 162, 97, 0.8);
   outline-offset: 3px;
+}
+
+/* =========================================================
+   GOOGLE TRANSLATE FRAME HIDING RULES
+   ========================================================= */
+
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+#google_translate_element,
+.goog-te-gadget,
+.goog-logo-link,
+.goog-te-combo {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
 }

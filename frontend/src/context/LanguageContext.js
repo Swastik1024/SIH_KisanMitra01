@@ -26,10 +26,25 @@ export function LanguageProvider({ children }) {
     return savedLang && languages[savedLang] ? savedLang : 'en';
   });
 
+
   const changeLanguage = (lang) => {
-    if (languages[lang]) {
-      setLanguage(lang);
-      localStorage.setItem('language', lang);
+    setLanguage(lang);
+    localStorage.setItem('language', lang);
+
+    if (typeof window !== 'undefined') {
+      const gtLang = lang === 'en' ? '' : `/en/${lang}`;
+      const hostname = window.location.hostname;
+      
+      document.cookie = `googtrans=${gtLang}; path=/; domain=${hostname}`;
+      document.cookie = `googtrans=${gtLang}; path=/;`;
+
+      const combo = document.querySelector('.goog-te-combo');
+      if (combo) {
+        combo.value = lang;
+        combo.dispatchEvent(new Event('change'));
+      } else {
+        window.location.reload();
+      }
     }
   };
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import Header from '../../../components/common/Header';
 import ProductCard from '../../../components/common/ProductCard';
 import AuctionCard from '../../../components/common/AuctionCard';
@@ -124,50 +125,126 @@ export default function TraderHome() {
               </a>
             </div>
           </div>
-          <div className="hero-visual">
-            <div className="hero-produce">🥕<span className="produce-name">Carrots</span></div>
-            <div className="hero-produce">🍅<span className="produce-name">Tomatoes</span></div>
-            <div className="hero-produce">🌾<span className="produce-name">Wheat</span></div>
-            <div className="hero-produce">🥬<span className="produce-name">Lettuce</span></div>
-            <div className="hero-produce">🍚<span className="produce-name">Rice</span></div>
-            <div className="hero-produce">🥔<span className="produce-name">Potatoes</span></div>
-          </div>
         </div>
       </section>
 
       {/* INTELLIGENCE & MARKETPLACE SUITE */}
       <section style={{ maxWidth: '1200px', margin: '30px auto 10px', padding: '0 20px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-          <Link href="/weather-alerts" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #bbf7d0', cursor: 'pointer', transition: 'transform 0.2s' }}>
-              <div style={{ fontSize: '28px', marginBottom: '6px' }}>⛅</div>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#1b4332' }}>Weather &amp; Farm Alerts</h4>
-              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Hyperlocal 5-day crop advisory &amp; rain warnings</p>
-            </div>
+          {/* Card 5: Golden Sun Yellow */}
+          <Link href="/weather-alerts" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <motion.div 
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justify: 'space-between',
+                height: '100%',
+                minHeight: '160px',
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'linear-gradient(135deg, #fef08a 0%, #fde047 100%)',
+                border: '1.5px solid #eab308',
+                color: '#713f12',
+                padding: '22px 20px',
+                borderRadius: '18px',
+                boxShadow: '0 4px 14px rgba(113, 63, 18, 0.12)',
+                cursor: 'pointer'
+              }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 10px 22px rgba(113, 63, 18, 0.22)' }}
+            >
+              <div>
+                <div style={{ fontSize: '32px', marginBottom: '8px', background: 'rgba(255, 255, 255, 0.65)', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>⛅</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#713f12' }}>Weather &amp; Farm Alerts</h3>
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#854d0e', fontWeight: '600', lineHeight: 1.4 }}>Hyperlocal 5-day crop advisory &amp; rain warnings</p>
+            </motion.div>
           </Link>
 
-          <Link href="/price-intelligence" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #bfdbfe', cursor: 'pointer', transition: 'transform 0.2s' }}>
-              <div style={{ fontSize: '28px', marginBottom: '6px' }}>📈</div>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#0d3b66' }}>Predictive Price Intelligence</h4>
-              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>AI trajectory model for optimal buy/sell timing</p>
-            </div>
+          {/* Card 6: Emerald Teal */}
+          <Link href="/price-intelligence" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <motion.div 
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justify: 'space-between',
+                height: '100%',
+                minHeight: '160px',
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'linear-gradient(135deg, #99f6e4 0%, #5eead4 100%)',
+                border: '1.5px solid #2dd4bf',
+                color: '#134e4a',
+                padding: '22px 20px',
+                borderRadius: '18px',
+                boxShadow: '0 4px 14px rgba(19, 78, 74, 0.12)',
+                cursor: 'pointer'
+              }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 10px 22px rgba(19, 78, 74, 0.22)' }}
+            >
+              <div>
+                <div style={{ fontSize: '32px', marginBottom: '8px', background: 'rgba(255, 255, 255, 0.65)', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>📈</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#134e4a' }}>Predictive Price Intelligence</h3>
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#0f766e', fontWeight: '600', lineHeight: 1.4 }}>AI trajectory model for optimal buy/sell timing</p>
+            </motion.div>
           </Link>
 
-          <Link href="/mandi-network" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0', cursor: 'pointer', transition: 'transform 0.2s' }}>
-              <div style={{ fontSize: '28px', marginBottom: '6px' }}>🏛️</div>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#2b2d42' }}>e-NAM Mandi Network</h4>
-              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Pan-India APMC live arrival &amp; price data</p>
-            </div>
+          {/* Card 7: Soft Rose Pink */}
+          <Link href="/mandi-network" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <motion.div 
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justify: 'space-between',
+                height: '100%',
+                minHeight: '160px',
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'linear-gradient(135deg, #fecdd3 0%, #fda4af 100%)',
+                border: '1.5px solid #fb7185',
+                color: '#881337',
+                padding: '22px 20px',
+                borderRadius: '18px',
+                boxShadow: '0 4px 14px rgba(136, 19, 55, 0.12)',
+                cursor: 'pointer'
+              }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 10px 22px rgba(136, 19, 55, 0.22)' }}
+            >
+              <div>
+                <div style={{ fontSize: '32px', marginBottom: '8px', background: 'rgba(255, 255, 255, 0.65)', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>🏛️</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#881337' }}>e-NAM Mandi Network</h3>
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#9f1239', fontWeight: '600', lineHeight: 1.4 }}>Pan-India APMC live arrival &amp; price data</p>
+            </motion.div>
           </Link>
 
-          <Link href="/apmc-benchmark" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #fde68a', cursor: 'pointer', transition: 'transform 0.2s' }}>
-              <div style={{ fontSize: '28px', marginBottom: '6px' }}>📊</div>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#4a3b32' }}>Live APMC Benchmark Rates</h4>
-              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Daily official modal prices &amp; min-max spread</p>
-            </div>
+          {/* Card 8: Fresh Lime Green */}
+          <Link href="/apmc-benchmark" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <motion.div 
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justify: 'space-between',
+                height: '100%',
+                minHeight: '160px',
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'linear-gradient(135deg, #d9f99d 0%, #a3e635 100%)',
+                border: '1.5px solid #84cc16',
+                color: '#365314',
+                padding: '22px 20px',
+                borderRadius: '18px',
+                boxShadow: '0 4px 14px rgba(54, 83, 20, 0.12)',
+                cursor: 'pointer'
+              }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 10px 22px rgba(54, 83, 20, 0.22)' }}
+            >
+              <div>
+                <div style={{ fontSize: '32px', marginBottom: '8px', background: 'rgba(255, 255, 255, 0.65)', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>📊</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#365314' }}>Live APMC Benchmark Rates</h3>
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#3f6212', fontWeight: '600', lineHeight: 1.4 }}>Daily official modal prices &amp; min-max spread</p>
+            </motion.div>
           </Link>
         </div>
       </section>

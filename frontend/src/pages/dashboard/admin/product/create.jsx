@@ -285,26 +285,65 @@ export default function AdminCreateProduct() {
               )}
 
               {/* Images */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Product Photos * <span style={{ color: '#dc2626', fontSize: '12px' }}>(At least 2 photos compulsory)</span></label>
-                <input type="file" accept="image/*" multiple onChange={(e) => handleFileChange(e, 'image')} style={{ marginTop: '8px' }} required />
+              <div style={{ marginBottom: '20px' }}>
+                <label style={labelStyle}>Product Photos * <span style={{ color: '#dc2626', fontSize: '12px' }}>(At least 2 photos compulsory for AI verification)</span></label>
+                <input type="file" id="admin-images-upload" accept="image/*" multiple onChange={(e) => handleFileChange(e, 'image')} style={{ display: 'none' }} />
+                <label 
+                  htmlFor="admin-images-upload"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '12px 18px',
+                    background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
+                    border: '1.5px solid #4ade80',
+                    borderRadius: '12px',
+                    color: '#14532d',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    marginTop: '8px'
+                  }}
+                >
+                  📁 {images.length > 0 ? `Change Photos (${images.length} selected)` : 'Browse & Upload Photos'}
+                </label>
                 {images.length < 2 ? (
                   <p style={{ fontSize: '13px', color: '#dc2626', fontWeight: '700', marginTop: '6px' }}>
                     ⚠️ Upload at least 2 photos ({images.length}/2 selected)
                   </p>
                 ) : (
-                  <p style={{ fontSize: '13px', color: '#27ae60', fontWeight: '700', marginTop: '6px' }}>
+                  <p style={{ fontSize: '13px', color: '#166534', fontWeight: '700', marginTop: '6px' }}>
                     ✓ {images.length} photo(s) selected (Requirement met)
                   </p>
                 )}
               </div>
 
-
               {/* Videos */}
               <div style={{ marginBottom: '24px' }}>
-                <label style={labelStyle}>Videos</label>
-                <input type="file" accept="video/*" multiple onChange={(e) => handleFileChange(e, 'video')} style={{ marginTop: '8px' }} />
-                {videos.length > 0 && <p style={{ fontSize: '13px', color: '#636e72', marginTop: '6px' }}>{videos.length} video(s) selected</p>}
+                <label style={labelStyle}>Product Videos</label>
+                <input type="file" id="admin-videos-upload" accept="video/*" multiple onChange={(e) => handleFileChange(e, 'video')} style={{ display: 'none' }} />
+                <label 
+                  htmlFor="admin-videos-upload"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justify: 'center',
+                    gap: '8px',
+                    padding: '12px 18px',
+                    background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
+                    border: '1.5px solid #38bdf8',
+                    borderRadius: '12px',
+                    color: '#0c4a6e',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    marginTop: '8px'
+                  }}
+                >
+                  🎥 {videos.length > 0 ? `Change Videos (${videos.length} selected)` : 'Browse & Upload Videos'}
+                </label>
+                {videos.length > 0 && <p style={{ fontSize: '13px', color: '#0369a1', fontWeight: '600', marginTop: '6px' }}>✓ {videos.length} video(s) attached</p>}
               </div>
 
               <button type="submit" disabled={submitting || uploading} style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #2d6a4f, #1b4332)', color: 'white', border: 'none', borderRadius: '50px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 8px 20px rgba(45,106,79,0.3)' }}>

@@ -96,20 +96,6 @@ export default function PurchaseInstruments() {
             <h1 className="hero-title">{t('instruments.title')}</h1>
             <p className="hero-desc">{t('instruments.description')}</p>
           </motion.div>
-          
-          <motion.div 
-            className="hero-visual"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <div className="hero-produce">🚜<span className="produce-name">Tractor</span></div>
-            <div className="hero-produce">🌱<span className="produce-name">Tillage</span></div>
-            <div className="hero-produce">💧<span className="produce-name">Irrigation</span></div>
-            <div className="hero-produce">🌿<span className="produce-name">Crop Care</span></div>
-            <div className="hero-produce">🌾<span className="produce-name">Harvest</span></div>
-            <div className="hero-produce">🛠️<span className="produce-name">Tools</span></div>
-          </motion.div>
         </div>
       </section>
 

@@ -95,18 +95,18 @@ export default function FarmerHome() {
               <motion.a 
                 href="#products" 
                 className="btn-primary"
-                style={{ background: 'linear-gradient(135deg, #f4a261 0%, #e76f51 100%)', color: '#ffffff', boxShadow: '0 4px 15px rgba(231,111,81,0.35)' }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)', color: '#7c2d12', border: '1.5px solid #fed7aa', boxShadow: '0 2px 8px rgba(249, 115, 22, 0.12)', fontWeight: '700' }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
               >
                 🛒 {t('home.shopNow')}
               </motion.a>
               <Link href="/dashboard/farmer/listings/createlistings" passHref legacyBehavior>
                 <motion.a 
                   className="btn-primary" 
-                  style={{ background: 'linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%)', color: '#ffffff', boxShadow: '0 4px 15px rgba(27,67,50,0.35)' }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', color: '#14532d', border: '1.5px solid #bbf7d0', boxShadow: '0 2px 8px rgba(16, 185, 129, 0.12)', fontWeight: '700' }}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
                 >
                   ➕ Sell Produce / List Crop
                 </motion.a>
@@ -114,9 +114,9 @@ export default function FarmerHome() {
               <Link href="/dashboard/farmer/purchase-medicine" passHref legacyBehavior>
                 <motion.a 
                   className="btn-primary" 
-                  style={{ background: 'linear-gradient(135deg, #028090 0%, #00a896 100%)', color: '#ffffff', boxShadow: '0 4px 15px rgba(2,128,144,0.35)' }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', color: '#0c4a6e', border: '1.5px solid #bae6fd', boxShadow: '0 2px 8px rgba(14, 165, 233, 0.12)', fontWeight: '700' }}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
                 >
                   💊 Purchase Medicine
                 </motion.a>
@@ -124,33 +124,19 @@ export default function FarmerHome() {
               <Link href="/dashboard/farmer/purchase-instruments" passHref legacyBehavior>
                 <motion.a 
                   className="btn-primary" 
-                  style={{ background: 'linear-gradient(135deg, #2a9d8f 0%, #264653 100%)', color: '#ffffff', boxShadow: '0 4px 15px rgba(42,157,143,0.35)' }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  style={{ background: 'linear-gradient(135deg, #fefce8 0%, #fef9c3 100%)', color: '#713f12', border: '1.5px solid #fef08a', boxShadow: '0 2px 8px rgba(234, 179, 8, 0.12)', fontWeight: '700' }}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
                 >
                   🔧 Purchase Instruments
                 </motion.a>
               </Link>
             </div>
           </motion.div>
-
-          <motion.div 
-            className="hero-visual"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <div className="hero-produce">🥕<span className="produce-name">Carrots</span></div>
-            <div className="hero-produce">🍅<span className="produce-name">Tomatoes</span></div>
-            <div className="hero-produce">🌾<span className="produce-name">Wheat</span></div>
-            <div className="hero-produce">🥬<span className="produce-name">Lettuce</span></div>
-            <div className="hero-produce">🍚<span className="produce-name">Rice</span></div>
-            <div className="hero-produce">🥔<span className="produce-name">Potatoes</span></div>
-          </motion.div>
         </div>
       </section>
 
-      {/* QUICK FARMER ACTION CARDS */}
+      {/* QUICK FARMER ACTION CARDS - SOFT PASTEL LIGHT USER-FRIENDLY COLOR PALETTE */}
       <section style={{ maxWidth: '1200px', margin: '30px auto 10px', padding: '0 20px' }}>
         <motion.div 
           style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', alignItems: 'stretch' }}
@@ -159,111 +145,115 @@ export default function FarmerHome() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
+          {/* Card 1: Soft Mint Green */}
           <Link href="/dashboard/farmer/listings/createlistings" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
             <motion.div 
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                justify: 'space-between',
+                justifyContent: 'space-between',
                 height: '100%',
                 minHeight: '170px',
                 width: '100%',
                 boxSizing: 'border-box',
-                background: 'linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%)',
-                color: 'white',
+                background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                border: '1.5px solid #bbf7d0',
                 padding: '22px 20px',
-                borderRadius: '18px',
-                boxShadow: '0 8px 20px rgba(27, 67, 50, 0.15)',
+                borderRadius: '20px',
+                boxShadow: '0 4px 14px rgba(16, 185, 129, 0.08)',
                 cursor: 'pointer'
               }}
-              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 25px rgba(27, 67, 50, 0.25)' }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 24px rgba(16, 185, 129, 0.18)' }}
             >
               <div>
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>🌾</div>
-                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2 }}>Create Crop Listing</h3>
+                <div style={{ fontSize: '28px', marginBottom: '12px', background: '#ffffff', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(16, 185, 129, 0.15)' }}>🌾</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#14532d' }}>Create Crop Listing</h3>
               </div>
-              <p style={{ margin: 0, fontSize: '13px', opacity: 0.9, lineHeight: 1.4 }}>Post your produce for live trader auctions</p>
+              <p style={{ margin: 0, fontSize: '13px', color: '#166534', fontWeight: '600', lineHeight: 1.4 }}>Post your produce for live trader auctions</p>
             </motion.div>
           </Link>
 
+          {/* Card 2: Soft Peach Amber */}
           <Link href="/dashboard/farmer/listings" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
             <motion.div 
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                justify: 'space-between',
+                justifyContent: 'space-between',
                 height: '100%',
                 minHeight: '170px',
                 width: '100%',
                 boxSizing: 'border-box',
-                background: 'linear-gradient(135deg, #40916c 0%, #52b788 100%)',
-                color: 'white',
+                background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
+                border: '1.5px solid #fed7aa',
                 padding: '22px 20px',
-                borderRadius: '18px',
-                boxShadow: '0 8px 20px rgba(64, 145, 108, 0.15)',
+                borderRadius: '20px',
+                boxShadow: '0 4px 14px rgba(249, 115, 22, 0.08)',
                 cursor: 'pointer'
               }}
-              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 25px rgba(64, 145, 108, 0.25)' }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 24px rgba(249, 115, 22, 0.18)' }}
             >
               <div>
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📋</div>
-                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2 }}>My Crop Listings</h3>
+                <div style={{ fontSize: '28px', marginBottom: '12px', background: '#ffffff', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(249, 115, 22, 0.15)' }}>📋</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#7c2d12' }}>My Crop Listings</h3>
               </div>
-              <p style={{ margin: 0, fontSize: '13px', opacity: 0.9, lineHeight: 1.4 }}>Check status & quality verification</p>
+              <p style={{ margin: 0, fontSize: '13px', color: '#9a3412', fontWeight: '600', lineHeight: 1.4 }}>Check status & quality verification</p>
             </motion.div>
           </Link>
 
+          {/* Card 3: Soft Sky Blue */}
           <Link href="/dashboard/farmer/purchase-medicine" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
             <motion.div 
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                justify: 'space-between',
+                justifyContent: 'space-between',
                 height: '100%',
                 minHeight: '170px',
                 width: '100%',
                 boxSizing: 'border-box',
-                background: 'linear-gradient(135deg, #028090 0%, #00a896 100%)',
-                color: 'white',
+                background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                border: '1.5px solid #bae6fd',
                 padding: '22px 20px',
-                borderRadius: '18px',
-                boxShadow: '0 8px 20px rgba(2, 128, 144, 0.15)',
+                borderRadius: '20px',
+                boxShadow: '0 4px 14px rgba(14, 165, 233, 0.08)',
                 cursor: 'pointer'
               }}
-              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 25px rgba(2, 128, 144, 0.25)' }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 24px rgba(14, 165, 233, 0.18)' }}
             >
               <div>
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>💊</div>
-                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2 }}>Farm Medicine & Seeds</h3>
+                <div style={{ fontSize: '28px', marginBottom: '12px', background: '#ffffff', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(14, 165, 233, 0.15)' }}>💊</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#0c4a6e' }}>Farm Medicine & Seeds</h3>
               </div>
-              <p style={{ margin: 0, fontSize: '13px', opacity: 0.9, lineHeight: 1.4 }}>Fertilizers, pesticides & crop boosters</p>
+              <p style={{ margin: 0, fontSize: '13px', color: '#0369a1', fontWeight: '600', lineHeight: 1.4 }}>Fertilizers, pesticides & crop boosters</p>
             </motion.div>
           </Link>
 
+          {/* Card 4: Soft Lavender Violet */}
           <Link href="/dashboard/farmer/purchase-instruments" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
             <motion.div 
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                justify: 'space-between',
+                justifyContent: 'space-between',
                 height: '100%',
                 minHeight: '170px',
                 width: '100%',
                 boxSizing: 'border-box',
-                background: 'linear-gradient(135deg, #2d6a4f 0%, #52b788 100%)',
-                color: 'white',
+                background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)',
+                border: '1.5px solid #e9d5ff',
                 padding: '22px 20px',
-                borderRadius: '18px',
-                boxShadow: '0 8px 20px rgba(45, 106, 79, 0.15)',
+                borderRadius: '20px',
+                boxShadow: '0 4px 14px rgba(139, 92, 246, 0.08)',
                 cursor: 'pointer'
               }}
-              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 25px rgba(45, 106, 79, 0.25)' }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 24px rgba(139, 92, 246, 0.18)' }}
             >
               <div>
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>🚜</div>
-                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2 }}>Farm Machinery</h3>
+                <div style={{ fontSize: '28px', marginBottom: '12px', background: '#ffffff', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(139, 92, 246, 0.15)' }}>🚜</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#581c87' }}>Farm Machinery</h3>
               </div>
-              <p style={{ margin: 0, fontSize: '13px', opacity: 0.9, lineHeight: 1.4 }}>Tools, tractors & irrigation kits</p>
+              <p style={{ margin: 0, fontSize: '13px', color: '#7e22ce', fontWeight: '600', lineHeight: 1.4 }}>Tools, tractors & irrigation kits</p>
             </motion.div>
           </Link>
         </motion.div>
@@ -272,36 +262,116 @@ export default function FarmerHome() {
       {/* INTELLIGENCE & ADVISORY SUITE */}
       <section style={{ maxWidth: '1200px', margin: '10px auto 30px', padding: '0 20px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-          <Link href="/weather-alerts" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #bbf7d0', cursor: 'pointer', transition: 'transform 0.2s' }}>
-              <div style={{ fontSize: '28px', marginBottom: '6px' }}>⛅</div>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#1b4332' }}>Weather &amp; Farm Alerts</h4>
-              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Hyperlocal 5-day crop advisory &amp; rain warnings</p>
-            </div>
+          {/* Card 5: Soft Warm Sun Yellow */}
+          <Link href="/weather-alerts" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <motion.div 
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: '100%',
+                minHeight: '160px',
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'linear-gradient(135deg, #fefce8 0%, #fef9c3 100%)',
+                border: '1.5px solid #fef08a',
+                padding: '22px 20px',
+                borderRadius: '20px',
+                boxShadow: '0 4px 14px rgba(234, 179, 8, 0.08)',
+                cursor: 'pointer'
+              }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 24px rgba(234, 179, 8, 0.18)' }}
+            >
+              <div>
+                <div style={{ fontSize: '28px', marginBottom: '12px', background: '#ffffff', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(234, 179, 8, 0.15)' }}>⛅</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#713f12' }}>Weather &amp; Farm Alerts</h3>
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#854d0e', fontWeight: '600', lineHeight: 1.4 }}>Hyperlocal 5-day crop advisory &amp; rain warnings</p>
+            </motion.div>
           </Link>
 
-          <Link href="/price-intelligence" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #bfdbfe', cursor: 'pointer', transition: 'transform 0.2s' }}>
-              <div style={{ fontSize: '28px', marginBottom: '6px' }}>📈</div>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#0d3b66' }}>Predictive Price Intelligence</h4>
-              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>AI trajectory model for optimal selling date</p>
-            </div>
+          {/* Card 6: Soft Fresh Teal */}
+          <Link href="/price-intelligence" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <motion.div 
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: '100%',
+                minHeight: '160px',
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)',
+                border: '1.5px solid #99f6e4',
+                padding: '22px 20px',
+                borderRadius: '20px',
+                boxShadow: '0 4px 14px rgba(20, 184, 166, 0.08)',
+                cursor: 'pointer'
+              }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 24px rgba(20, 184, 166, 0.18)' }}
+            >
+              <div>
+                <div style={{ fontSize: '28px', marginBottom: '12px', background: '#ffffff', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(20, 184, 166, 0.15)' }}>📈</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#134e4a' }}>Predictive Price Intelligence</h3>
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#0f766e', fontWeight: '600', lineHeight: 1.4 }}>AI trajectory model for optimal selling date</p>
+            </motion.div>
           </Link>
 
-          <Link href="/mandi-network" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0', cursor: 'pointer', transition: 'transform 0.2s' }}>
-              <div style={{ fontSize: '28px', marginBottom: '6px' }}>🏛️</div>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#2b2d42' }}>e-NAM Mandi Network</h4>
-              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Pan-India APMC live arrival &amp; price data</p>
-            </div>
+          {/* Card 7: Soft Blush Rose */}
+          <Link href="/mandi-network" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <motion.div 
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: '100%',
+                minHeight: '160px',
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)',
+                border: '1.5px solid #fecdd3',
+                padding: '22px 20px',
+                borderRadius: '20px',
+                boxShadow: '0 4px 14px rgba(244, 63, 94, 0.08)',
+                cursor: 'pointer'
+              }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 24px rgba(244, 63, 94, 0.18)' }}
+            >
+              <div>
+                <div style={{ fontSize: '28px', marginBottom: '12px', background: '#ffffff', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(244, 63, 94, 0.15)' }}>🏛️</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#881337' }}>e-NAM Mandi Network</h3>
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#9f1239', fontWeight: '600', lineHeight: 1.4 }}>Pan-India APMC live arrival &amp; price data</p>
+            </motion.div>
           </Link>
 
-          <Link href="/apmc-benchmark" style={{ textDecoration: 'none' }}>
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)', border: '1px solid #fde68a', cursor: 'pointer', transition: 'transform 0.2s' }}>
-              <div style={{ fontSize: '28px', marginBottom: '6px' }}>📊</div>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#4a3b32' }}>Live APMC Benchmark Rates</h4>
-              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Daily official modal prices &amp; min-max spread</p>
-            </div>
+          {/* Card 8: Soft Lime Green */}
+          <Link href="/apmc-benchmark" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <motion.div 
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: '100%',
+                minHeight: '160px',
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'linear-gradient(135deg, #f7fee7 0%, #ecfccb 100%)',
+                border: '1.5px solid #d9f99d',
+                padding: '22px 20px',
+                borderRadius: '20px',
+                boxShadow: '0 4px 14px rgba(132, 204, 22, 0.08)',
+                cursor: 'pointer'
+              }}
+              whileHover={{ y: -5, scale: 1.02, boxShadow: '0 12px 24px rgba(132, 204, 22, 0.18)' }}
+            >
+              <div>
+                <div style={{ fontSize: '28px', marginBottom: '12px', background: '#ffffff', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(132, 204, 22, 0.15)' }}>📊</div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '700', lineHeight: 1.2, color: '#365314' }}>Live APMC Benchmark Rates</h3>
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#4d7c0f', fontWeight: '600', lineHeight: 1.4 }}>Daily official modal prices &amp; min-max spread</p>
+            </motion.div>
           </Link>
         </div>
       </section>

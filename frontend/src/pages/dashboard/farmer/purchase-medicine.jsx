@@ -94,20 +94,6 @@ export default function PurchaseMedicine() {
             <h1 className="hero-title">{t('medicine.title')}</h1>
             <p className="hero-desc">{t('medicine.description')}</p>
           </motion.div>
-          
-          <motion.div 
-            className="hero-visual"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <div className="hero-produce">🐛<span className="produce-name">Pest</span></div>
-            <div className="hero-produce">🍄<span className="produce-name">Disease</span></div>
-            <div className="hero-produce">🌿<span className="produce-name">Weed</span></div>
-            <div className="hero-produce">🌱<span className="produce-name">Nutrition</span></div>
-            <div className="hero-produce">🦠<span className="produce-name">Bio</span></div>
-            <div className="hero-produce">🌾<span className="produce-name">Growth</span></div>
-          </motion.div>
         </div>
       </section>
 

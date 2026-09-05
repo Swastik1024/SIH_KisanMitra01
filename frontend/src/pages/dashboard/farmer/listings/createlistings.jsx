@@ -450,27 +450,82 @@ export default function CreateListings() {
               )}
 
               {/* UPLOAD IMAGES & VIDEOS */}
-              <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px dashed #cbd5e1', marginBottom: '28px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '16px', border: '1.5px dashed #94a3b8', marginBottom: '28px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                   <div>
-                    <label style={labelStyle}>Crop Photos * <span style={{ color: '#dc2626', fontSize: '12px' }}>(At least 2 photos compulsory)</span></label>
-                    <input type="file" accept="image/*" multiple onChange={(e) => handleFileChange(e, 'image')} style={{ fontSize: '13px' }} required />
+                    <label style={labelStyle}>Crop Photos * <span style={{ color: '#dc2626', fontSize: '12px' }}>(At least 2 photos compulsory for AI verification)</span></label>
+                    <input 
+                      type="file" 
+                      id="crop-photos-upload" 
+                      accept="image/*" 
+                      multiple 
+                      onChange={(e) => handleFileChange(e, 'image')} 
+                      style={{ display: 'none' }} 
+                    />
+                    <label 
+                      htmlFor="crop-photos-upload"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '12px 18px',
+                        background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
+                        border: '1.5px solid #4ade80',
+                        borderRadius: '12px',
+                        color: '#14532d',
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(74, 222, 128, 0.15)',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      📁 {images.length > 0 ? `Change Photos (${images.length} selected)` : 'Browse & Upload Photos'}
+                    </label>
                     {images.length < 2 ? (
-                      <p style={{ fontSize: '12px', color: '#dc2626', fontWeight: '700', marginTop: '6px' }}>
+                      <p style={{ fontSize: '12px', color: '#dc2626', fontWeight: '700', marginTop: '8px', marginBottom: 0 }}>
                         ⚠️ Upload at least 2 photos ({images.length}/2 selected)
                       </p>
                     ) : (
-                      <p style={{ fontSize: '12px', color: '#059669', fontWeight: '700', marginTop: '6px' }}>
-                        ✓ {images.length} photo(s) attached (Requirement met)
+                      <p style={{ fontSize: '12px', color: '#059669', fontWeight: '700', marginTop: '8px', marginBottom: 0 }}>
+                        ✓ {images.length} photo(s) attached successfully
                       </p>
                     )}
                   </div>
 
-
                   <div>
                     <label style={labelStyle}>Crop Inspection Video</label>
-                    <input type="file" accept="video/*" multiple onChange={(e) => handleFileChange(e, 'video')} style={{ fontSize: '13px' }} />
-                    {videos.length > 0 && <p style={{ fontSize: '12px', color: '#059669', fontWeight: '700', marginTop: '6px' }}>✓ {videos.length} video(s) attached</p>}
+                    <input 
+                      type="file" 
+                      id="crop-video-upload" 
+                      accept="video/*" 
+                      multiple 
+                      onChange={(e) => handleFileChange(e, 'video')} 
+                      style={{ display: 'none' }} 
+                    />
+                    <label 
+                      htmlFor="crop-video-upload"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justify: 'center',
+                        gap: '8px',
+                        padding: '12px 18px',
+                        background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
+                        border: '1.5px solid #38bdf8',
+                        borderRadius: '12px',
+                        color: '#0c4a6e',
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(56, 189, 248, 0.15)',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      🎥 {videos.length > 0 ? `Change Videos (${videos.length} selected)` : 'Browse & Upload Video'}
+                    </label>
+                    {videos.length > 0 && <p style={{ fontSize: '12px', color: '#0284c7', fontWeight: '700', marginTop: '8px', marginBottom: 0 }}>✓ {videos.length} video(s) attached successfully</p>}
                   </div>
                 </div>
               </div>
