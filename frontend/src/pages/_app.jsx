@@ -41,7 +41,33 @@ export default function App({ Component, pageProps }) {
   useEffect(() => {
     hydrate();
     setMounted(true);
+
+
+
+    if (typeof window !== 'undefined') {
+      window.googleTranslateElementInit = () => {
+        if (window.google && window.google.translate) {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: 'en',
+              includedLanguages: 'en,hi,mr,ta,gu,te,kn,bn',
+              autoDisplay: false,
+            },
+            'google_translate_element'
+          );
+        }
+      };
+
+      if (!document.getElementById('google-translate-script')) {
+        const script = document.createElement('script');
+        script.id = 'google-translate-script';
+        script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    }
   }, [hydrate]);
+
 
 
 
