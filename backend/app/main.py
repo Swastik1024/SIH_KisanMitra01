@@ -208,4 +208,4 @@ async def auction_scheduler():
 
 @app.get("/")
 def root():
-    return {"message": "AgriMart API is running"}
+    return {"message": "KhetiKart API is running"}

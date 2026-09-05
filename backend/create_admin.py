@@ -13,15 +13,15 @@ try:
     existing_admin = db.query(User).filter(User.role == "admin").first()
     if existing_admin:
         existing_admin.password_hash = hash_password("Admin@1234")
-        existing_admin.email = "admin@kisanmitra.com"
+        existing_admin.email = "admin@khetikart.com"
         db.commit()
-        print("✅ Admin credentials verified/updated:")
+        print("[SUCCESS] Admin credentials verified/updated:")
         print(f"Email: {existing_admin.email}")
         print("Password: Admin@1234")
     else:
         admin = User(
             name="System Admin",
-            email="admin@kisanmitra.com",
+            email="admin@khetikart.com",
             phone="9999999999",
             password_hash=hash_password("Admin@1234"),
             role="admin",
@@ -30,8 +30,8 @@ try:
         )
         db.add(admin)
         db.commit()
-        print("✅ Default admin created successfully")
-        print("Email: admin@kisanmitra.com")
+        print("[SUCCESS] Default admin created successfully")
+        print("Email: admin@khetikart.com")
         print("Password: Admin@1234")
 
 finally:

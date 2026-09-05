@@ -16,7 +16,8 @@ export const sendOtpEmail = async (userEmail, otpCode) => {
     otp_code: otpCode,
     otp: otpCode,
     passcode: otpCode,
-    message: `Your KisanMitra OTP verification code is: ${otpCode}. Valid for 5 minutes.`,
+    message: `Your KhetiKart OTP verification code is: ${otpCode}. Valid for 5 minutes.`,
+
   };
 
   try {

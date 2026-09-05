@@ -34,7 +34,8 @@ export default function ApmcBenchmarkPage() {
   return (
     <>
       <Head>
-        <title>Live APMC Benchmark Rates | KisanMitra</title>
+        <title>Live APMC Benchmark Rates | KhetiKart</title>
+
         <meta name="description" content="Official APMC daily benchmark rates, modal prices, and minimum-maximum price spreads across India" />
       </Head>
 

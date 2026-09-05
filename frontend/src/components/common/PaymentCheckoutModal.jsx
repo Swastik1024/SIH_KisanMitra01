@@ -55,8 +55,9 @@ export default function PaymentCheckoutModal({ order, onClose, onPaymentSuccess 
           key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
           amount: Math.round(order.total_price * 100), // paise
           currency: 'INR',
-          name: 'KisanMitra',
+          name: 'KhetiKart',
           description: `Order #${order.id} — ${order.product?.name || 'Crop'}`,
+
           order_id: rzpOrderId,
           prefill: { method: method },
           theme: { color: '#059669' },
@@ -76,7 +77,7 @@ export default function PaymentCheckoutModal({ order, onClose, onPaymentSuccess 
               );
               setInvoice(verifyRes.data);
               setStep('success');
-              toast.success('Payment successful! Funds secured in KisanMitra Escrow.');
+              toast.success('Payment successful! Funds secured in KhetiKart Escrow.');
               if (onPaymentSuccess) onPaymentSuccess(verifyRes.data);
               resolve();
             } catch (err) {
@@ -121,11 +122,12 @@ export default function PaymentCheckoutModal({ order, onClose, onPaymentSuccess 
           display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
           <div>
-            <div style={{ fontSize: '11px', opacity: 0.7, letterSpacing: '1px', textTransform: 'uppercase' }}>KisanMitra Secure Pay</div>
+            <div style={{ fontSize: '11px', opacity: 0.7, letterSpacing: '1px', textTransform: 'uppercase' }}>KhetiKart Secure Pay</div>
             <div style={{ fontSize: '20px', fontWeight: '800', marginTop: '2px' }}>
               Complete Payment
             </div>
           </div>
+
           <button onClick={onClose} style={{
             background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
             width: '36px', height: '36px', cursor: 'pointer', color: '#fff',
@@ -225,7 +227,7 @@ export default function PaymentCheckoutModal({ order, onClose, onPaymentSuccess 
             }}>
               <Shield size={18} style={{ color: '#d97706', marginTop: '1px', flexShrink: 0 }} />
               <div style={{ fontSize: '12px', color: '#92400e', lineHeight: '1.5' }}>
-                <strong>Protected by KisanMitra Escrow:</strong> Your funds are held securely and released to the farmer only after delivery is confirmed.
+                <strong>Protected by KhetiKart Escrow:</strong> Your funds are held securely and released to the farmer only after delivery is confirmed.
               </div>
             </div>
 
@@ -278,7 +280,7 @@ export default function PaymentCheckoutModal({ order, onClose, onPaymentSuccess 
               <Loader size={28} style={{ color: '#059669', animation: 'spin 1s linear infinite' }} />
             </div>
             <div style={{ fontSize: '18px', fontWeight: '800', color: '#064e3b', marginBottom: '8px' }}>Processing Payment...</div>
-            <div style={{ fontSize: '14px', color: '#6b7280' }}>Securing funds in KisanMitra Escrow vault</div>
+            <div style={{ fontSize: '14px', color: '#6b7280' }}>Securing funds in KhetiKart Escrow vault</div>
             <style>{`@keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }`}</style>
           </div>
         )}
@@ -298,9 +300,10 @@ export default function PaymentCheckoutModal({ order, onClose, onPaymentSuccess 
               Payment Successful! 🎉
             </div>
             <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '24px', lineHeight: '1.6' }}>
-              ₹{(+order.total_price).toLocaleString('en-IN')} is secured in KisanMitra Escrow.<br />
+              ₹{(+order.total_price).toLocaleString('en-IN')} is secured in KhetiKart Escrow.<br />
               Funds will be released to farmer upon delivery confirmation.
             </div>
+
 
             {invoice && (
               <div style={{

@@ -80,8 +80,9 @@ export default function Login() {
             color: '#1b4332',
             margin: 0
           }}>
-            Kisan<span style={{ color: '#f4a261' }}>Mitra</span>
+            Kheti<span style={{ color: '#f4a261' }}>Kart</span>
           </h1>
+
           <p style={{
             color: '#636e72',
             fontSize: '14px',

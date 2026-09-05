@@ -22,7 +22,8 @@ export default function PriceIntelligencePage() {
   return (
     <>
       <Head>
-        <title>Predictive Price Intelligence | KisanMitra</title>
+        <title>Predictive Price Intelligence | KhetiKart</title>
+
         <meta name="description" content="AI crop price forecasting, market trend analysis, and optimal harvest sell timing" />
       </Head>
 

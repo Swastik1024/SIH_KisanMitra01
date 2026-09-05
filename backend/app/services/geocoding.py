@@ -12,7 +12,7 @@ def geocode(address: str):
         "limit": 1,
     }
     headers = {
-        "User-Agent": "KisanMitra/1.0 (student project; contact: you@example.com)"
+        "User-Agent": "KhetiKart/1.0 (agri platform; contact: support@khetikart.com)"
     }
 
     try:

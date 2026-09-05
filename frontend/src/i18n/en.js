@@ -35,8 +35,9 @@ export default {
   },
   auth: {
     register: 'Register',
-    loginTitle: 'Login to KisanMitra',
-    registerTitle: 'Create KisanMitra Account',
+    loginTitle: 'Login to KhetiKart',
+    registerTitle: 'Create KhetiKart Account',
+
     email: 'Email Address',
     password: 'Password',
     fullName: 'Full Name',
@@ -94,7 +95,7 @@ export default {
     productsSold: 'Products Sold',
     totalEarnings: 'Total Earnings',
     totalGraded: 'Total Graded Products',
-    qualityGrades: 'Quality Grades Assigned by KisanMitra',
+    qualityGrades: 'Quality Grades Assigned by KhetiKart',
     email: 'Email',
     phone: 'Phone',
     location: 'Location',
@@ -103,7 +104,7 @@ export default {
   },
   help: {
     title: 'Help & Support',
-    assistantName: 'KisanMitra Assistant',
+    assistantName: 'KhetiKart Assistant',
     assistantTagline: 'Ask me anything about the platform',
     quickTopics: 'Quick Topics',
     typeMessage: 'Type your message...',
@@ -116,7 +117,8 @@ export default {
     ticketSuccess: 'Ticket submitted successfully!',
     ticketFailed: 'Failed to submit ticket',
     ticketCreatedMessage: 'Your support ticket has been created. Our team will contact you soon.',
-    initialMessage: "Hi! I'm KisanMitra Assistant. Ask me about registration, auctions, payments, orders, or type 'contact support' for a human.",
+    initialMessage: "Hi! I'm KhetiKart Assistant. Ask me about registration, auctions, payments, orders, or type 'contact support' for a human.",
+
     fallbackMessage: "I'm not sure about that. You can submit a support ticket below, and our team will help you.",
     quickRegister: 'Register',
     quickAuctions: 'Auctions',
