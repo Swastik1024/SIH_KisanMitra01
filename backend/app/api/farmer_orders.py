@@ -122,7 +122,6 @@ def create_order(
         delivery_charge=delivery_charge,
         platform_fee=platform_fee,
         payment_transaction_id=data.payment_transaction_id,
-        delivery_commission=0.0,
     )
     db.add(order)
 

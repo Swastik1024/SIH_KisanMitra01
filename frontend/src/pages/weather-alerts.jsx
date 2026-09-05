@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import Header from '../components/common/Header';
 import { useLanguage } from '../context/LanguageContext';
@@ -13,7 +13,7 @@ export default function WeatherAlertsPage() {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchWeather = async (loc = location, pin = pincode) => {
+  const fetchWeather = useCallback(async (loc = location, pin = pincode) => {
     setLoading(true);
     try {
       const res = await api.get(`/api/weather/advisory?location=${encodeURIComponent(loc)}&pincode=${encodeURIComponent(pin)}`);
@@ -23,11 +23,11 @@ export default function WeatherAlertsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [location, pincode]);
 
   useEffect(() => {
     fetchWeather();
-  }, []);
+  }, [fetchWeather]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -120,7 +120,12 @@ export default function WeatherAlertsPage() {
                 type="text"
                 placeholder="Pincode"
                 value={pincode}
-                onChange={(e) => setPincode(e.target.value)}
+                onChange={(e) => {
+                  setPincode(e.target.value);
+                  if (/^\d{6}$/.test(e.target.value)) {
+                    localStorage.setItem('user_pincode', e.target.value);
+                  }
+                }}
                 style={{
                   width: '120px',
                   padding: '12px 14px',

@@ -119,11 +119,12 @@ async def auction_websocket(websocket: WebSocket, auction_id: int):
                         auction_id=auction_id,
                         bidder_id=user_id,
                         bid_amount=bid_amount,
-                        is_winning=True
+                        is_winning=False  # will be set True after the bulk reset below
                     )
-                    db.add(bid)
-                    # Reset winning flag on all bids for this auction
+                    # Reset winning flag on ALL existing bids first, then mark the new one winning
                     db.query(Bid).filter(Bid.auction_id == auction_id).update({"is_winning": False})
+                    bid.is_winning = True
+                    db.add(bid)
                     auction.current_highest_bid = bid_amount
                     auction.current_highest_bidder_id = user_id
 

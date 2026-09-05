@@ -9,7 +9,6 @@ class Auction(Base):
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey("products.id"), unique=True, nullable=False)
     farmer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    agent_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     base_price = Column(Float, nullable=False)
     reserve_price = Column(Float)
     start_time = Column(DateTime(timezone=True), nullable=False)
@@ -22,10 +21,10 @@ class Auction(Base):
 
     product = relationship("Product", back_populates="auction")
     farmer = relationship("User", back_populates="auctions_as_farmer", foreign_keys=[farmer_id])
-    agent = relationship("User", back_populates="auctions_as_agent", foreign_keys=[agent_id])
     current_highest_bidder = relationship("User", foreign_keys=[current_highest_bidder_id])
     bids = relationship("Bid", back_populates="auction", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="auction")
+
 
 class Bid(Base):
     __tablename__ = "bids"

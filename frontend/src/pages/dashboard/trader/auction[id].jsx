@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Header from '../../../components/common/Header';
@@ -30,6 +30,22 @@ export default function AuctionDetail() {
     const timer = setTimeout(() => setAuthReady(true), 100);
     return () => clearTimeout(timer);
   }, [hydrate]);
+
+  const startCountdown = useCallback((endTime) => {
+    if (!endTime) return;
+    const interval = setInterval(() => {
+      const remaining = new Date(endTime).getTime() - Date.now();
+      if (remaining <= 0) {
+        setTimeLeft('Ended');
+        clearInterval(interval);
+      } else {
+        const seconds = Math.floor(remaining / 1000);
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        setTimeLeft(`${mins}m ${secs}s`);
+      }
+    }, 1000);
+  }, []);
 
   useEffect(() => {
     if (!authReady || !id) return;
@@ -86,23 +102,7 @@ export default function AuctionDetail() {
     return () => {
       if (socketRef.current) socketRef.current.close();
     };
-  }, [authReady, id, isAuthenticated, user, router]);
-
-  const startCountdown = (endTime) => {
-    if (!endTime) return;
-    const interval = setInterval(() => {
-      const remaining = new Date(endTime).getTime() - Date.now();
-      if (remaining <= 0) {
-        setTimeLeft('Ended');
-        clearInterval(interval);
-      } else {
-        const seconds = Math.floor(remaining / 1000);
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        setTimeLeft(`${mins}m ${secs}s`);
-      }
-    }, 1000);
-  };
+  }, [authReady, id, isAuthenticated, user, router, startCountdown]);
 
   const placeBid = () => {
     const amount = parseFloat(bidAmount);

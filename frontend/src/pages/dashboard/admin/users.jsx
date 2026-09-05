@@ -108,8 +108,8 @@ export default function AdminUsersPage() {
               <option value="">All Roles</option>
               <option value="farmer">Farmer</option>
               <option value="trader">Trader</option>
-              <option value="agent">Agent</option>
               <option value="admin">Admin</option>
+
             </select>
           </div>
 

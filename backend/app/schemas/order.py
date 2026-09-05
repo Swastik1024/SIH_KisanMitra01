@@ -10,7 +10,6 @@ class OrderOut(BaseModel):
     product_id: int
     auction_id: Optional[int]
     trader_id: int
-    agent_id: Optional[int]
     quantity: float
     total_price: float
     status: str

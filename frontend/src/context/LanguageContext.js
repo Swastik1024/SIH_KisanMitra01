@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import en from '../i18n/en';
 import hi from '../i18n/hi';
 import mr from '../i18n/mr';
@@ -20,14 +20,11 @@ const defaultLanguage = {
 const LanguageContext = createContext(defaultLanguage);
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState('en');
-
-  useEffect(() => {
+  const [language, setLanguage] = useState(() => {
+    if (typeof window === 'undefined') return 'en';
     const savedLang = localStorage.getItem('language');
-    if (savedLang && languages[savedLang]) {
-      setLanguage(savedLang);
-    }
-  }, []);
+    return savedLang && languages[savedLang] ? savedLang : 'en';
+  });
 
   const changeLanguage = (lang) => {
     if (languages[lang]) {

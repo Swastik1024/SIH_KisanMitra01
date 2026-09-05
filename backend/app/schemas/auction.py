@@ -15,7 +15,6 @@ class AuctionOut(BaseModel):
     id: int
     product_id: int
     farmer_id: int
-    agent_id: int
     base_price: float
     reserve_price: Optional[float]
     start_time: datetime

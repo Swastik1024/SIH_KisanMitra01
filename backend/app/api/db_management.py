@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 
 from ..database import get_db, engine, Base, SessionLocal
 from ..config import settings
-from ..models.user import User, TraderLicense, AgentProfile
+from ..models.user import User, TraderLicense
 from ..models.product import Category, CategoryTranslation, Product, InspectionReport
 from ..models.auction import Auction, Bid
 from ..models.order import Order
@@ -48,9 +48,9 @@ def get_db_stats(
             ("orders", Order),
             ("inspection_reports", InspectionReport),
             ("trader_licenses", TraderLicense),
-            ("agent_profiles", AgentProfile),
             ("platform_settings", PlatformSetting)
         ]
+
         
         table_counts = {}
         for name, model in models:

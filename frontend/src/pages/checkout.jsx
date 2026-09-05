@@ -60,6 +60,10 @@ export default function CheckoutPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    // Persist pincode so ProductCard can compute distance from trader to farm
+    if (name === 'delivery_pincode' && value.length === 6 && /^\d{6}$/.test(value)) {
+      localStorage.setItem('user_pincode', value);
+    }
   };
 
   const handlePaymentDetailsChange = (e) => {
@@ -143,11 +147,14 @@ export default function CheckoutPage() {
       router.replace('/dashboard/' + user?.role);
       return;
     }
-    if (user?.phone && !form.delivery_phone) {
-      setForm((prev) => ({ ...prev, delivery_phone: user.phone }));
-    }
     if (product_id) fetchProduct();
-  }, [isAuthenticated, user, product_id, router, fetchProduct, form.delivery_phone]);
+  }, [isAuthenticated, user, product_id, router, fetchProduct]);
+
+  useEffect(() => {
+    if (user?.phone) {
+      setForm((prev) => prev.delivery_phone ? prev : { ...prev, delivery_phone: user.phone });
+    }
+  }, [user?.phone]);
 
   useEffect(() => {
     if (product) {

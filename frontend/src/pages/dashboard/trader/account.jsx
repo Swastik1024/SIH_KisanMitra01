@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Header from '../../../components/common/Header';
@@ -26,17 +26,7 @@ export default function TraderAccount() {
     return () => clearTimeout(timer);
   }, [hydrate]);
 
-  useEffect(() => {
-    if (!authReady) return;
-
-    if (!isAuthenticated || user?.role !== 'trader') {
-      router.replace('/login');
-      return;
-    }
-    fetchTransactions();
-  }, [authReady, isAuthenticated, user, router]);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/api/trader/transactions');
@@ -52,7 +42,17 @@ export default function TraderAccount() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    if (!authReady) return;
+
+    if (!isAuthenticated || user?.role !== 'trader') {
+      router.replace('/login');
+      return;
+    }
+    fetchTransactions();
+  }, [authReady, isAuthenticated, user, router, fetchTransactions]);
 
   const completedTransactions = transactions.filter(
     (tx) =>

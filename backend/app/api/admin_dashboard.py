@@ -43,14 +43,16 @@ def admin_dashboard(
     total_farmers = db.query(func.count(User.id)).filter(User.role == "farmer").scalar() or 0
     total_traders = db.query(func.count(User.id)).filter(User.role == "trader").scalar() or 0
 
-    active_listings = db.query(func.count(Product.id)).filter(Product.status == "active").scalar() or 0
+    active_listings = db.query(func.count(Product.id)).filter(Product.status.in_(["active", "verified"])).scalar() or 0
+    verified_listings = db.query(func.count(Product.id)).filter(Product.status == "verified").scalar() or 0
+    flagged_listings = db.query(func.count(Product.id)).filter(Product.status == "flagged").scalar() or 0
     active_auctions = db.query(func.count(Auction.id)).filter(Auction.status == "live").scalar() or 0
-    pending_inspections = db.query(func.count(Product.id)).filter(Product.status == "pending_inspection").scalar() or 0
 
     pending_orders = db.query(func.count(Order.id)).filter(Order.status == "pending").scalar() or 0
     processing_orders = db.query(func.count(Order.id)).filter(Order.status.in_(["accepted", "shipped"])).scalar() or 0
     completed_orders = db.query(func.count(Order.id)).filter(Order.status == "delivered").scalar() or 0
     cancelled_orders = db.query(func.count(Order.id)).filter(Order.status == "cancelled").scalar() or 0
+
 
     # ---------- DELIVERY BREAKDOWN ----------
     pending_deliveries = db.query(func.count(Order.id)).filter(Order.status == "pending").scalar() or 0
@@ -99,6 +101,11 @@ def admin_dashboard(
     pending_delivery_requests = db.query(Order).filter(
         Order.status.in_(["pending", "accepted"])
     ).order_by(Order.created_at.desc()).limit(5).all()
+
+    # ---------- FLAGGED LISTINGS (AI Detected Fake Photos) ----------
+    flagged_products = db.query(Product).filter(
+        Product.status == "flagged"
+    ).order_by(Product.created_at.desc()).limit(10).all()
 
     # ---------- SERIALIZERS ----------
     def order_to_dict(order):
@@ -156,6 +163,23 @@ def admin_dashboard(
             "created_at": order.created_at.isoformat() if order.created_at else None,
         }
 
+    def flagged_listing_to_dict(product):
+        first_media = product.media[0] if product.media else None
+        report = product.inspection_report
+        return {
+            "id": product.id,
+            "product_name": product.name,
+            "farmer_name": product.farmer.name if product.farmer else "—",
+            "farmer_phone": product.farmer.phone if product.farmer else "—",
+            "quantity": product.quantity,
+            "unit": product.unit,
+            "price": float(product.price) if product.price else 0.0,
+            "location": product.location or "—",
+            "image": first_media.url if first_media else None,
+            "flag_reason": report.notes if report else "Suspicious image detected by AI",
+            "created_at": product.created_at.isoformat() if product.created_at else None,
+        }
+
     # ---------- RESPONSE ----------
     return {
         "stats": {
@@ -163,10 +187,12 @@ def admin_dashboard(
             "total_farmers": total_farmers,
             "total_traders": total_traders,
             "active_listings": active_listings,
+            "verified_listings": verified_listings,
+            "flagged_listings": flagged_listings,
             "active_auctions": active_auctions,
-            "pending_inspections": pending_inspections,
             "pending_deliveries": pending_deliveries,
             "pending_orders": pending_orders,
+
             "processing_orders": processing_orders,
             "completed_orders": completed_orders,
             "cancelled_orders": cancelled_orders,
@@ -197,4 +223,5 @@ def admin_dashboard(
         "recent_users": [user_to_dict(u) for u in recent_users],
         "pending_inspection_requests": [inspection_request_to_dict(p) for p in pending_inspection_requests],
         "pending_delivery_requests": [delivery_request_to_dict(o) for o in pending_delivery_requests],
+        "flagged_listings": [flagged_listing_to_dict(p) for p in flagged_products],
     }

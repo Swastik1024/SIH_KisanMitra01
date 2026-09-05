@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Header from '../../../components/common/Header';
@@ -16,13 +16,7 @@ export default function AdminEscrowPage() {
 
   useEffect(() => { hydrate(); }, [hydrate]);
 
-  useEffect(() => {
-    if (!isAuthenticated) { router.push('/login'); return; }
-    if (user?.role !== 'admin') { router.replace('/dashboard'); return; }
-    fetchOrders();
-  }, [isAuthenticated, user, router]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/api/orders/all');
@@ -36,7 +30,14 @@ export default function AdminEscrowPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) { router.push('/login'); return; }
+    if (user?.role !== 'admin') { router.replace('/dashboard'); return; }
+    fetchOrders();
+  }, [isAuthenticated, user, router, fetchOrders]);
+
 
   const handleRelease = async (orderId) => {
     setReleasingId(orderId);

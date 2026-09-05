@@ -62,7 +62,6 @@ def list_auctions(
             "product_id": auction.product_id,
             "product_name": auction.product.name if auction.product else "—",
             "farmer_name": auction.farmer.name if auction.farmer else "—",
-            "agent_name": auction.agent.name if auction.agent else "—",
             "base_price": auction.base_price,
             "current_highest_bid": auction.current_highest_bid,
             "current_highest_bidder": highest_bidder_name,

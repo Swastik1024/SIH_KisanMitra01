@@ -37,7 +37,6 @@ def get_analysis(
     total_users = db.query(func.count(User.id)).scalar() or 0
     total_farmers = db.query(func.count(User.id)).filter(User.role == "farmer").scalar() or 0
     total_traders = db.query(func.count(User.id)).filter(User.role == "trader").scalar() or 0
-    total_agents = db.query(func.count(User.id)).filter(User.role == "agent").scalar() or 0
     active_listings = db.query(func.count(Product.id)).filter(Product.status == "active").scalar() or 0
     active_auctions = db.query(func.count(Auction.id)).filter(Auction.status == "live").scalar() or 0
 
@@ -161,7 +160,6 @@ def get_analysis(
             "total_users": total_users,
             "total_farmers": total_farmers,
             "total_traders": total_traders,
-            "total_agents": total_agents,
             "active_listings": active_listings,
             "active_auctions": active_auctions,
             "total_revenue": float(total_revenue),

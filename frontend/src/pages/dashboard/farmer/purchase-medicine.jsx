@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -27,19 +27,7 @@ export default function PurchaseMedicine() {
     hydrate();
   }, [hydrate]);
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    if (user?.role !== 'farmer') {
-      router.replace('/dashboard/' + user?.role);
-      return;
-    }
-    fetchProducts();
-  }, [isAuthenticated, user, router]);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const res = await api.get('/api/products/');
       const medicineCategories = [
@@ -60,7 +48,19 @@ export default function PurchaseMedicine() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    if (user?.role !== 'farmer') {
+      router.replace('/dashboard/' + user?.role);
+      return;
+    }
+    fetchProducts();
+  }, [isAuthenticated, user, router, fetchProducts]);
 
   const medicineCategories = [
     { key: 'all', label: 'All', icon: '💊' },

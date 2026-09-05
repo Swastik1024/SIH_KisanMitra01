@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Header from '../../../components/common/Header';
@@ -19,7 +19,7 @@ export default function TraderBids() {
     hydrate();
   }, [hydrate]);
 
-  const fetchBids = async () => {
+  const fetchBids = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/api/auctions/my-bids');
@@ -36,7 +36,7 @@ export default function TraderBids() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, t]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -48,7 +48,7 @@ export default function TraderBids() {
       return;
     }
     fetchBids();
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, fetchBids]);
 
   return (
     <div>

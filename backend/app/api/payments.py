@@ -7,7 +7,7 @@ import razorpay
 
 from ..database import get_db
 from ..models.order import Order
-from ..models.payment import PaymentTransaction, EscrowAccount, GSTInvoice, Payout, Commission
+from ..models.payment import PaymentTransaction, EscrowAccount, GSTInvoice, Payout
 from ..models.user import User
 from ..models.notification import Notification
 from ..schemas.payment import PaymentCreate, PaymentOut, GSTInvoiceOut
@@ -15,6 +15,7 @@ from ..core.deps import get_current_user, require_role
 from ..config import settings
 
 router = APIRouter(prefix="/api/payments", tags=["payments"])
+
 
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
@@ -67,8 +68,21 @@ def verify_payment(
     current_user: User = Depends(require_role("trader"))
 ):
     order_id = payload.get("order_id")
+    razorpay_order_id = payload.get("razorpay_order_id", "")
     razorpay_payment_id = payload.get("razorpay_payment_id", f"pay_demo_{int(datetime.now().timestamp())}")
+    razorpay_signature = payload.get("razorpay_signature", "")
     payment_method = payload.get("payment_method", "UPI")
+
+    # Verify Razorpay payment signature when real keys are configured
+    if settings.RAZORPAY_KEY_ID and "rzp_test" in settings.RAZORPAY_KEY_ID and razorpay_signature:
+        try:
+            client.utility.verify_payment_signature({
+                "razorpay_order_id": razorpay_order_id,
+                "razorpay_payment_id": razorpay_payment_id,
+                "razorpay_signature": razorpay_signature,
+            })
+        except Exception:
+            raise HTTPException(status_code=400, detail="Payment signature verification failed. Payment not processed.")
 
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
@@ -156,8 +170,8 @@ def release_escrow_payout(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Only Admin or Agent can release escrow
-    if current_user.role not in ["admin", "agent"]:
+    # Only Admin can release escrow
+    if current_user.role not in ["admin"]:
         raise HTTPException(status_code=403, detail="Not authorized to release escrow funds")
 
     order = db.query(Order).filter(Order.id == order_id).first()
@@ -176,10 +190,9 @@ def release_escrow_payout(
 
     order.payment_status = "released"
 
-    # Calculate Farmer Payout (95%) and Agent Commission (5%)
+    # Calculate Farmer Payout (100% of order total)
     total = order.total_price
-    agent_commission_amt = round(total * 0.05, 2)
-    farmer_payout_amt = round(total - agent_commission_amt, 2)
+    farmer_payout_amt = round(total, 2)
 
     if order.product and order.product.farmer_id:
         payout = Payout(
@@ -197,23 +210,14 @@ def release_escrow_payout(
             message=f"💸 ₹{farmer_payout_amt} payout released to your bank account for Order #{order.id}!"
         ))
 
-    if order.agent_id:
-        commission = Commission(
-            order_id=order.id,
-            agent_id=order.agent_id,
-            amount=agent_commission_amt,
-            status="paid"
-        )
-        db.add(commission)
-
     db.commit()
 
     return {
         "message": f"Escrow funds of ₹{total} released successfully!",
         "farmer_payout": farmer_payout_amt,
-        "agent_commission": agent_commission_amt,
         "released_at": now.strftime("%Y-%m-%d %H:%M:%S")
     }
+
 
 @router.get("/escrow/{order_id}")
 def get_escrow_details(
@@ -221,6 +225,15 @@ def get_escrow_details(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    # Only the trader who placed the order, the product's farmer, or an admin can view escrow
+    farmer_id = order.product.farmer_id if order.product else None
+    if current_user.role not in ["admin"] and current_user.id != order.trader_id and current_user.id != farmer_id:
+        raise HTTPException(status_code=403, detail="Not authorized to view this escrow")
+
     escrow = db.query(EscrowAccount).filter(EscrowAccount.order_id == order_id).first()
     if not escrow:
         raise HTTPException(status_code=404, detail="Escrow details not found for this order")

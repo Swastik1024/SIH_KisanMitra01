@@ -41,8 +41,11 @@ export default function App({ Component, pageProps }) {
 
   useEffect(() => {
     hydrate();
-    setMounted(true);
   }, [hydrate]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <LanguageProvider>

@@ -50,11 +50,11 @@ class InspectionReportCreate(BaseModel):
     recommendations: Optional[str] = None
     final_base_price: float
     notes: Optional[str] = None
+    is_fraud: Optional[bool] = False
 
 class InspectionReportOut(BaseModel):
     id: int
     product_id: int
-    agent_id: int
     inspection_date: datetime
     quality_grade: str
     freshness_score: Optional[float]

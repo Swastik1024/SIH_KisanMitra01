@@ -149,7 +149,7 @@ export default function ApmcBenchmarkPage() {
           {/* BENCHMARK RATES TABLE / CARDS */}
           <div style={{ background: '#ffffff', borderRadius: '24px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
             <h3 style={{ fontSize: '20px', fontWeight: '800', color: '#4a3b32', marginBottom: '20px' }}>
-              Today's Official APMC Benchmark Index
+              Today&apos;s Official APMC Benchmark Index
             </h3>
 
             {loading ? (

@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .database import engine, Base, SessionLocal
 from .config import settings
-from .api import auth, products, auctions, orders, payments, agent, uploads, ws_auctions, admin_dashboard, admin_users, admin_listings, admin_revenue, admin_auctions, admin_products
+from .api import auth, products, auctions, orders, payments, uploads, ws_auctions, admin_dashboard, admin_users, admin_listings, admin_revenue, admin_auctions, admin_products
 from .models.auction import Auction, Bid
 from .models.order import Order
 from .models.notification import Notification
@@ -17,7 +18,6 @@ from .api import trader
 from .models.settings import PlatformSetting
 from .api import admin_analysis, admin_settings
 from .api import farmer_orders
-from .api import agent_dashboard
 from .api import admin_requests
 from .api import bids
 from .api import farmer_payments
@@ -30,7 +30,20 @@ from .api import doc_verify
 # Create database tables if they don't exist
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title=settings.PROJECT_NAME)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: validate config and launch background tasks
+    if settings.SECRET_KEY == "your-secret-key-change-in-production":
+        import os
+        if os.getenv("ENVIRONMENT", "development") == "production":
+            raise RuntimeError("SECRET_KEY must be set to a secure value in production!")
+        else:
+            print("[WARNING] SECRET_KEY is using the default insecure value. Set SECRET_KEY in your .env file.")
+    asyncio.create_task(auction_scheduler())
+    yield
+    # Shutdown: nothing to clean up
+
+app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
 # Configure CORS
 app.add_middleware(
@@ -50,14 +63,13 @@ app.include_router(products.router)
 app.include_router(auctions.router)
 app.include_router(orders.router)
 app.include_router(payments.router)
-app.include_router(agent.router)
 app.include_router(farmer.router)
 app.include_router(otp.router)
 app.include_router(uploads.router)
 app.include_router(ws_auctions.router)
 app.include_router(categories.router)
 app.include_router(trader.router)
-app.include_router(admin_dashboard.router)   # <-- ensure this is here
+app.include_router(admin_dashboard.router)
 app.include_router(admin_users.router)
 app.include_router(admin_listings.router)
 app.include_router(admin_revenue.router)
@@ -66,7 +78,6 @@ app.include_router(admin_analysis.router)
 app.include_router(admin_settings.router)
 app.include_router(farmer_orders.router)
 app.include_router(admin_products.router)
-app.include_router(agent_dashboard.router)
 app.include_router(admin_requests.router)
 app.include_router(bids.router)
 app.include_router(farmer_payments.router)
@@ -131,17 +142,21 @@ async def auction_scheduler():
                             Order.auction_id == auction.id
                         ).first()
                         if not existing_order:
+                            # Skip order creation if the product has been deleted
+                            if not auction.product:
+                                print(f"[Scheduler] Skipping order for auction {auction.id}: product is None")
+                                continue
                             order = Order(
                                 product_id=auction.product_id,
                                 auction_id=auction.id,
                                 trader_id=auction.current_highest_bidder_id,
-                                agent_id=auction.agent_id,
-                                quantity=auction.product.quantity if auction.product else 1.0,
+                                quantity=auction.product.quantity,
                                 total_price=auction.current_highest_bid,
                                 status="pending",
                                 payment_status="pending"
                             )
                             db.add(order)
+
                             if auction.product:
                                 auction.product.status = "sold"
 
@@ -167,9 +182,6 @@ async def auction_scheduler():
         finally:
             db.close()
 
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(auction_scheduler())
 
 @app.get("/")
 def root():

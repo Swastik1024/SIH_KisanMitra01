@@ -121,7 +121,12 @@ export default function AdminCreateProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (images.length < 2) {
+      toast.error('⚠️ At least 2 photos of the product are compulsory for AI verification!');
+      return;
+    }
     setSubmitting(true);
+
     try {
       const payload = {
         ...form,
@@ -281,10 +286,19 @@ export default function AdminCreateProduct() {
 
               {/* Images */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Images</label>
-                <input type="file" accept="image/*" multiple onChange={(e) => handleFileChange(e, 'image')} style={{ marginTop: '8px' }} />
-                {images.length > 0 && <p style={{ fontSize: '13px', color: '#636e72', marginTop: '6px' }}>{images.length} image(s) selected</p>}
+                <label style={labelStyle}>Product Photos * <span style={{ color: '#dc2626', fontSize: '12px' }}>(At least 2 photos compulsory)</span></label>
+                <input type="file" accept="image/*" multiple onChange={(e) => handleFileChange(e, 'image')} style={{ marginTop: '8px' }} required />
+                {images.length < 2 ? (
+                  <p style={{ fontSize: '13px', color: '#dc2626', fontWeight: '700', marginTop: '6px' }}>
+                    ⚠️ Upload at least 2 photos ({images.length}/2 selected)
+                  </p>
+                ) : (
+                  <p style={{ fontSize: '13px', color: '#27ae60', fontWeight: '700', marginTop: '6px' }}>
+                    ✓ {images.length} photo(s) selected (Requirement met)
+                  </p>
+                )}
               </div>
+
 
               {/* Videos */}
               <div style={{ marginBottom: '24px' }}>

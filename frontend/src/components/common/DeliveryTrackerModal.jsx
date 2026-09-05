@@ -1,57 +1,81 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Truck, CheckCircle2, Clock, MapPin, Package, AlertCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 export default function DeliveryTrackerModal({ orderId, onClose }) {
   const [tracking, setTracking] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [newStatus, setNewStatus] = useState('shipped');
+  const [locationNote, setLocationNote] = useState('');
+
+  const fetchTracking = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/api/orders/${orderId}/tracking`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTracking(res.data);
+    } catch (err) {
+      console.error(err);
+      setTracking({
+        order_id: orderId,
+        product_name: 'Agricultural Produce',
+        quantity: 100,
+        total_price: 385000,
+        order_status: 'in_transit',
+        payment_status: 'held_in_escrow',
+        delivery_address: 'Central Market Yard, Gate #4',
+        courier_partner: 'Trader Self-Managed Logistics',
+        tracking_number: `KM-TRADER-LOG-${orderId || 1024}`,
+        estimated_delivery: 'Within 24-48 Hours',
+        current_step_index: 2,
+        steps: [
+          { label: 'Order Finalized', description: 'Auction closed & order created' },
+          { label: 'AI Quality Verified', description: 'Passed LLM computer vision crop inspection' },
+          { label: 'Self-Pickup Dispatched', description: 'Dispatched via Trader arrangement' },
+          { label: 'Arrived at APMC Hub', description: 'Weight & quality verified at market yard' },
+          { label: 'Out for Final Delivery', description: 'En route to Trader warehouse' },
+          { label: 'Delivered & Escrow Released', description: 'Order received & completed' }
+        ],
+        checkpoint_history: []
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [orderId]);
 
   useEffect(() => {
-    async function fetchTracking() {
-      setLoading(true);
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_BASE_URL}/api/orders/${orderId}/tracking`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setTracking(res.data);
-      } catch (err) {
-        console.error(err);
-        // Demo fallback
-        setTracking({
-          order_id: orderId,
-          product_name: 'Premium Basmati Paddy (100 Qtl)',
-          quantity: 100,
-          total_price: 385000,
-          order_status: 'in_transit',
-          payment_status: 'held_in_escrow',
-          delivery_address: 'Central Market Yard, Gate #4, Pune, MH 411001',
-          courier_partner: 'KisanMitra Express Logistics',
-          tracking_number: `KM-LOG-${orderId || 1024}`,
-          estimated_delivery: 'Tomorrow by 4:00 PM',
-          current_step_index: 3,
-          steps: [
-            { label: 'Order Finalized', description: 'Auction closed with winning bid' },
-            { label: 'Quality Inspected', description: 'Passed field agent grade A inspection' },
-            { label: 'Dispatched in Freight', description: 'Loaded on logistics carrier #MH-12-AG-4902' },
-            { label: 'Arrived at APMC Hub', description: 'Undergoing regional weight checkpoint' },
-            { label: 'Out for Last-Mile', description: 'Dispatched with local delivery partner' },
-            { label: 'Delivered & Escrow Released', description: 'Funds disbursed to farmer' }
-          ],
-          checkpoint_history: [
-            { status: 'Arrived at APMC Hub', location: 'Pune APMC Checkpost', note: 'Vehicle weighbridge entry recorded', timestamp: 'Today, 02:30 PM' },
-            { status: 'In Transit', location: 'NH-4 Highway Express', note: 'On-time movement tracked via GPS', timestamp: 'Today, 09:15 AM' },
-            { status: 'Dispatched', location: 'Farmer Collection Point, Nashik', note: 'Cargo sealed and loaded', timestamp: 'Yesterday, 04:00 PM' }
-          ]
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
     if (orderId) fetchTracking();
-  }, [orderId]);
+  }, [orderId, fetchTracking]);
+
+  const handleUpdateStatus = async () => {
+    setUpdating(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API_BASE_URL}/api/orders/${orderId}/delivery`,
+        {
+          status: newStatus,
+          location: 'Trader Self-Transport',
+          note: locationNote || `Delivery status updated to ${newStatus}`
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Self-delivery status updated!');
+      setLocationNote('');
+      fetchTracking();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.detail || 'Failed to update delivery status');
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   if (!orderId) return null;
 
@@ -68,23 +92,23 @@ export default function DeliveryTrackerModal({ orderId, onClose }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Truck style={{ color: '#059669' }} size={24} />
             <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: 0 }}>
-              Live Delivery & Freight Tracking
+              Trader Self-Managed Delivery Tracking
             </h3>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6b7280' }}>✕</button>
         </div>
 
         {loading || !tracking ? (
-          <div style={{ textAlign: 'center', padding: '32px' }}>Fetching live GPS & courier updates...</div>
+          <div style={{ textAlign: 'center', padding: '32px' }}>Fetching delivery details...</div>
         ) : (
           <div>
             {/* Header info */}
             <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                 <div>
-                  <div style={{ fontSize: '12px', color: '#166534', fontWeight: '600' }}>AWB TRACKING: {tracking.tracking_number}</div>
+                  <div style={{ fontSize: '12px', color: '#166534', fontWeight: '600' }}>LOGISTICS TRACKING: {tracking.tracking_number}</div>
                   <div style={{ fontSize: '18px', fontWeight: '800', color: '#15803d' }}>{tracking.product_name}</div>
-                  <div style={{ fontSize: '13px', color: '#374151', mt: '2px' }}>Carrier: {tracking.courier_partner}</div>
+                  <div style={{ fontSize: '13px', color: '#374151', mt: '2px' }}>Logistics: {tracking.courier_partner || 'Trader Self-Managed Transport'}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '12px', color: '#166534' }}>Estimated Delivery</div>
@@ -125,6 +149,43 @@ export default function DeliveryTrackerModal({ orderId, onClose }) {
               </div>
             </div>
 
+            {/* Trader Delivery Update Form */}
+            <div style={{ backgroundColor: '#f8faf9', borderRadius: '12px', padding: '16px', marginBottom: '20px', border: '1px solid #d1fae5' }}>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: '#166534', marginBottom: '10px' }}>
+                🚚 Update Logistics & Delivery Status (Trader Control)
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px' }}
+                >
+                  <option value="packed">Packed at Farmer Site</option>
+                  <option value="shipped">Dispatched for Self-Pickup</option>
+                  <option value="in_transit">In Transit</option>
+                  <option value="out_for_delivery">Out for Last-Mile Delivery</option>
+                  <option value="delivered">Delivered & Verified</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="Optional status note / location"
+                  value={locationNote}
+                  onChange={(e) => setLocationNote(e.target.value)}
+                  style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px' }}
+                />
+                <button
+                  onClick={handleUpdateStatus}
+                  disabled={updating}
+                  style={{
+                    padding: '8px 18px', borderRadius: '8px', backgroundColor: '#059669', color: '#fff',
+                    border: 'none', fontWeight: '600', fontSize: '13px', cursor: 'pointer'
+                  }}
+                >
+                  {updating ? 'Updating...' : 'Update Status'}
+                </button>
+              </div>
+            </div>
+
             {/* Checkpoints */}
             {tracking.checkpoint_history && tracking.checkpoint_history.length > 0 && (
               <div style={{ backgroundColor: '#f9fafb', borderRadius: '12px', padding: '16px', border: '1px solid #e5e7eb' }}>
@@ -148,3 +209,4 @@ export default function DeliveryTrackerModal({ orderId, onClose }) {
     </div>
   );
 }
+

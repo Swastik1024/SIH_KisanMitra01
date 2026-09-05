@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/orders", tags=["orders"])
 def finalize_auction(
     auction_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("agent"))
+    current_user: User = Depends(get_current_user)
 ):
     auction = db.query(Auction).filter(Auction.id == auction_id).first()
     if not auction:
@@ -34,14 +34,13 @@ def finalize_auction(
         product_id=auction.product_id,
         auction_id=auction.id,
         trader_id=auction.current_highest_bidder_id,
-        agent_id=auction.agent_id,
         quantity=auction.product.quantity,
         total_price=auction.current_highest_bid,
         status="pending",
         payment_status="pending"
     )
     db.add(order)
-    auction.status = "completed"  # change from ended to completed? Keep ended, but mark order created
+    auction.status = "completed"
     db.commit()
     db.refresh(order)
     return order
@@ -55,8 +54,6 @@ def get_my_orders(
         orders = db.query(Order).filter(Order.trader_id == current_user.id).all()
     elif current_user.role == "farmer":
         orders = db.query(Order).join(Order.product).filter(Order.product.has(farmer_id=current_user.id)).all()
-    elif current_user.role == "agent":
-        orders = db.query(Order).filter(Order.agent_id == current_user.id).all()
     else:
         orders = db.query(Order).all()
     return orders
@@ -100,11 +97,15 @@ def update_delivery(
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     
-    # Only agent or admin can update delivery
-    if current_user.role not in ["agent", "admin"]:
-        raise HTTPException(status_code=403, detail="Not allowed")
-    if current_user.role == "agent" and order.agent_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not your delivery")
+    # Trader (buyer): can only update their own order's delivery
+    if current_user.role == "trader" and order.trader_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your order delivery")
+    # Farmer: can only update delivery for orders on their own products
+    if current_user.role == "farmer":
+        farmer_id = order.product.farmer_id if order.product else None
+        if farmer_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not your product order")
+
     
     track = OrderDeliveryTracking(
         order_id=order_id,

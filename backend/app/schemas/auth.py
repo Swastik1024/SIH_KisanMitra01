@@ -8,6 +8,7 @@ class UserBase(BaseModel):
     phone: str
     language: str = 'en'
     location: Optional[str] = None
+    pincode: Optional[str] = None
 
 class FarmerRegister(UserBase):
     password: str
@@ -23,24 +24,12 @@ class TraderRegister(UserBase):
     pan_document: Optional[str] = None
     trading_licence_document: Optional[str] = None
 
-class AgentCreate(BaseModel):
-    name: str
-    email: EmailStr
-    phone: str
-    password: str
-    service_area: Optional[str] = None
-    commission_rate: float = 0.0
-    qualifications: Optional[str] = None
-    bank_name: Optional[str] = None
-    account_holder: Optional[str] = None
-    account_number: Optional[str] = None
-    ifsc_code: Optional[str] = None
-
 class AdminCreate(BaseModel):
     name: str
     email: EmailStr
     phone: str
     password: str
+
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -60,6 +49,7 @@ class TokenResponse(BaseModel):
     role: str
     user_id: int
     name: str
+    pincode: Optional[str] = None
 
 class UserOut(BaseModel):
     id: int
@@ -69,8 +59,9 @@ class UserOut(BaseModel):
     role: str
     language: str
     location: Optional[str]
+    pincode: Optional[str] = None
     verified: bool
     created_at: datetime
 
     class Config:
-        from_attributes = True
+        from_attributes = True

@@ -122,7 +122,12 @@ export default function CreateListings() {
       toast.error('Please select a produce category');
       return;
     }
+    if (images.length < 2) {
+      toast.error('⚠️ At least 2 photos of the product are compulsory for AI verification!');
+      return;
+    }
     setSubmitting(true);
+
     try {
       const payload = {
         name: form.name.trim(),
@@ -140,11 +145,11 @@ export default function CreateListings() {
         payload.available_date = form.available_date;
       }
 
-      if (form.auction_start_time && ['fixed_price', 'fast_auction', 'long_auction'].includes(form.auction_type)) {
+      if (form.auction_start_time && ['fast_auction', 'long_auction'].includes(form.auction_type)) {
         payload.auction_start_time = form.auction_start_time;
       }
 
-      if (form.auction_end_time && ['fixed_price', 'fast_auction', 'long_auction'].includes(form.auction_type)) {
+      if (form.auction_end_time && ['fast_auction', 'long_auction'].includes(form.auction_type)) {
         payload.auction_end_time = form.auction_end_time;
       }
 
@@ -448,10 +453,19 @@ export default function CreateListings() {
               <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px dashed #cbd5e1', marginBottom: '28px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label style={labelStyle}>Crop Photos</label>
-                    <input type="file" accept="image/*" multiple onChange={(e) => handleFileChange(e, 'image')} style={{ fontSize: '13px' }} />
-                    {images.length > 0 && <p style={{ fontSize: '12px', color: '#059669', fontWeight: '700', marginTop: '6px' }}>✓ {images.length} photo(s) attached</p>}
+                    <label style={labelStyle}>Crop Photos * <span style={{ color: '#dc2626', fontSize: '12px' }}>(At least 2 photos compulsory)</span></label>
+                    <input type="file" accept="image/*" multiple onChange={(e) => handleFileChange(e, 'image')} style={{ fontSize: '13px' }} required />
+                    {images.length < 2 ? (
+                      <p style={{ fontSize: '12px', color: '#dc2626', fontWeight: '700', marginTop: '6px' }}>
+                        ⚠️ Upload at least 2 photos ({images.length}/2 selected)
+                      </p>
+                    ) : (
+                      <p style={{ fontSize: '12px', color: '#059669', fontWeight: '700', marginTop: '6px' }}>
+                        ✓ {images.length} photo(s) attached (Requirement met)
+                      </p>
+                    )}
                   </div>
+
 
                   <div>
                     <label style={labelStyle}>Crop Inspection Video</label>

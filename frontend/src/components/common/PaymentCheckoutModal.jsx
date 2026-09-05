@@ -23,35 +23,81 @@ export default function PaymentCheckoutModal({ order, onClose, onPaymentSuccess 
   const gst = order?.total_price ? +(order.total_price * (5 / 105)).toFixed(2) : 0;
   const base = order?.total_price ? +(order.total_price - gst).toFixed(2) : 0;
 
+  const loadRazorpay = () =>
+    new Promise((resolve) => {
+      if (window.Razorpay) return resolve(true);
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+
   const handlePay = async () => {
     setStep('processing');
     try {
       const token = localStorage.getItem('token');
 
-      // Step 1: Create gateway order
-      await axios.post(`${API_BASE_URL}/api/payments/create-order`,
+      // Step 1: Create Razorpay order on backend
+      const createRes = await axios.post(
+        `${API_BASE_URL}/api/payments/create-order`,
         { order_id: order.id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      const rzpOrderId = createRes.data?.razorpay_order_id;
 
-      // Step 2: Verify & move to escrow
-      const verifyRes = await axios.post(`${API_BASE_URL}/api/payments/verify`,
-        {
-          order_id: order.id,
-          razorpay_payment_id: `pay_demo_${Date.now()}`,
-          payment_method: method
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // Step 2: Load Razorpay SDK and open checkout popup
+      const sdkLoaded = await loadRazorpay();
+      if (!sdkLoaded) throw new Error('Razorpay SDK failed to load. Check your internet connection.');
 
-      setInvoice(verifyRes.data);
-      setStep('success');
-      toast.success('Payment successful! Funds secured in KisanMitra Escrow.');
-      if (onPaymentSuccess) onPaymentSuccess(verifyRes.data);
+      await new Promise((resolve, reject) => {
+        const rzp = new window.Razorpay({
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: Math.round(order.total_price * 100), // paise
+          currency: 'INR',
+          name: 'KisanMitra',
+          description: `Order #${order.id} — ${order.product?.name || 'Crop'}`,
+          order_id: rzpOrderId,
+          prefill: { method: method },
+          theme: { color: '#059669' },
+          handler: async (response) => {
+            try {
+              // Step 3: Verify signature on backend
+              const verifyRes = await axios.post(
+                `${API_BASE_URL}/api/payments/verify`,
+                {
+                  order_id: order.id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  payment_method: method,
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              setInvoice(verifyRes.data);
+              setStep('success');
+              toast.success('Payment successful! Funds secured in KisanMitra Escrow.');
+              if (onPaymentSuccess) onPaymentSuccess(verifyRes.data);
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setStep('confirm');
+              reject(new Error('Payment cancelled'));
+            },
+          },
+        });
+        rzp.open();
+      });
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.detail || 'Payment failed. Please try again.');
-      setStep('confirm');
+      if (err?.message !== 'Payment cancelled') {
+        console.error(err);
+        toast.error(err.response?.data?.detail || err.message || 'Payment failed. Please try again.');
+      }
+      if (step !== 'success') setStep('confirm');
     }
   };
 

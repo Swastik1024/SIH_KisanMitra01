@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { CheckCircle, XCircle, Award, User, RefreshCw, Clock } from 'lucide-react';
@@ -10,7 +10,7 @@ export default function FarmerBidsSelectionModal({ auctionId, onClose, onAccepte
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState(null);
 
-  const fetchBids = async () => {
+  const fetchBids = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -24,11 +24,11 @@ export default function FarmerBidsSelectionModal({ auctionId, onClose, onAccepte
     } finally {
       setLoading(false);
     }
-  };
+  }, [auctionId]);
 
   useEffect(() => {
     if (auctionId) fetchBids();
-  }, [auctionId]);
+  }, [auctionId, fetchBids]);
 
   const handleAcceptBid = async (bidId) => {
     setActionId(bidId);

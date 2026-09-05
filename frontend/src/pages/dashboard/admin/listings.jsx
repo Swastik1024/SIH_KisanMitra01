@@ -128,7 +128,12 @@ export default function AdminListingsPage() {
                         </td>
                         <td style={styles.td}>₹{l.price}</td>
                         <td style={styles.td}>
-                          <span style={styles.statusBadge}>{l.status}</span>
+                          <span style={{
+                            ...styles.statusBadge,
+                            ...(l.status === 'rejected_fraud' ? { background: '#fef2f2', color: '#dc2626' } : {})
+                          }}>
+                            {l.status === 'rejected_fraud' ? 'Fraud (Rejected)' : l.status.replace('_', ' ')}
+                          </span>
                         </td>
                         <td style={styles.td}>
                           {new Date(l.created_at).toLocaleDateString('en-IN')}

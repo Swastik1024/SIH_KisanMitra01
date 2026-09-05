@@ -58,16 +58,4 @@ class GSTInvoice(Base):
     invoice_pdf_url = Column(String(500))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    order = relationship("Order", back_populates="gst_invoice")
-
-class Commission(Base):
-    __tablename__ = "commissions"
-
-    id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
-    agent_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    amount = Column(Float, nullable=False)
-    status = Column(String(20), default='pending')  # pending, paid
-
-    order = relationship("Order", back_populates="commissions")
-    agent = relationship("User", back_populates="commissions")
+    order = relationship("Order", back_populates="gst_invoice")

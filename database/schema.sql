@@ -5,7 +5,7 @@ CREATE TABLE users (
     email TEXT UNIQUE NOT NULL,
     phone TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('farmer', 'trader', 'agent', 'admin')),
+    role TEXT NOT NULL CHECK (role IN ('farmer', 'trader', 'admin')),
     language TEXT DEFAULT 'en',
     location TEXT,
     verified BOOLEAN DEFAULT 0,
@@ -18,16 +18,6 @@ CREATE TABLE trader_licenses (
     licence_number TEXT NOT NULL,
     expiry_date DATE,
     verified BOOLEAN DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-);
-
-CREATE TABLE agent_profiles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    service_area TEXT,
-    commission_rate REAL DEFAULT 0,
-    is_approved BOOLEAN DEFAULT 0,
-    rating REAL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
@@ -55,8 +45,8 @@ CREATE TABLE products (
     description TEXT,
     quantity REAL NOT NULL,
     unit TEXT NOT NULL,
-    status TEXT DEFAULT 'pending_inspection'
-        CHECK (status IN ('pending_inspection', 'verified', 'rejected', 'listed', 'sold')),
+    status TEXT DEFAULT 'verified'
+        CHECK (status IN ('verified', 'flagged', 'rejected', 'active', 'sold')),
     location TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (farmer_id) REFERENCES users (id),
@@ -68,7 +58,7 @@ CREATE TABLE product_media (
     product_id INTEGER NOT NULL,
     media_type TEXT NOT NULL CHECK (media_type IN ('image', 'video')),
     url TEXT NOT NULL,
-    uploaded_by INTEGER NOT NULL,  -- user id (farmer or agent)
+    uploaded_by INTEGER NOT NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
     FOREIGN KEY (uploaded_by) REFERENCES users (id)
@@ -78,9 +68,8 @@ CREATE TABLE product_media (
 CREATE TABLE inspection_reports (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER NOT NULL,
-    agent_id INTEGER NOT NULL,
     inspection_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    quality_grade TEXT,           -- A, B, C, D
+    quality_grade TEXT,
     freshness_score REAL,
     defect_rate REAL,
     size_uniformity TEXT,
@@ -90,10 +79,9 @@ CREATE TABLE inspection_reports (
     weight_estimate REAL,
     confidence_score REAL,
     recommendations TEXT,
-    final_base_price REAL NOT NULL,  -- set by agent
+    final_base_price REAL NOT NULL,
     notes TEXT,
-    FOREIGN KEY (product_id) REFERENCES products (id),
-    FOREIGN KEY (agent_id) REFERENCES users (id)
+    FOREIGN KEY (product_id) REFERENCES products (id)
 );
 
 -- Auctions
@@ -101,8 +89,7 @@ CREATE TABLE auctions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER NOT NULL UNIQUE,
     farmer_id INTEGER NOT NULL,
-    agent_id INTEGER NOT NULL,          -- agent who created/inspected
-    base_price REAL NOT NULL,           -- final base price
+    base_price REAL NOT NULL,
     reserve_price REAL,
     start_time TIMESTAMP NOT NULL,
     end_time TIMESTAMP NOT NULL,
@@ -114,7 +101,6 @@ CREATE TABLE auctions (
     auto_extension_enabled BOOLEAN DEFAULT 1,
     FOREIGN KEY (product_id) REFERENCES products (id),
     FOREIGN KEY (farmer_id) REFERENCES users (id),
-    FOREIGN KEY (agent_id) REFERENCES users (id),
     FOREIGN KEY (current_highest_bidder_id) REFERENCES users (id)
 );
 
@@ -133,9 +119,8 @@ CREATE TABLE bids (
 CREATE TABLE orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER NOT NULL,
-    auction_id INTEGER,                -- nullable, if from auction
+    auction_id INTEGER,
     trader_id INTEGER NOT NULL,
-    agent_id INTEGER,
     quantity REAL NOT NULL,
     total_price REAL NOT NULL,
     status TEXT DEFAULT 'pending'
@@ -145,18 +130,17 @@ CREATE TABLE orders (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products (id),
     FOREIGN KEY (auction_id) REFERENCES auctions (id),
-    FOREIGN KEY (trader_id) REFERENCES users (id),
-    FOREIGN KEY (agent_id) REFERENCES users (id)
+    FOREIGN KEY (trader_id) REFERENCES users (id)
 );
 
 CREATE TABLE order_delivery_tracking (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id INTEGER NOT NULL,
-    status TEXT NOT NULL,  -- packed, shipped, in_transit, out_for_delivery, delivered
+    status TEXT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     location TEXT,
     note TEXT,
-    updated_by INTEGER NOT NULL,       -- user id (agent/farmer/admin)
+    updated_by INTEGER NOT NULL,
     proof_image_url TEXT,
     FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
     FOREIGN KEY (updated_by) REFERENCES users (id)
@@ -213,16 +197,6 @@ CREATE TABLE gst_invoices (
     FOREIGN KEY (order_id) REFERENCES orders (id)
 );
 
-CREATE TABLE commissions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    order_id INTEGER NOT NULL,
-    agent_id INTEGER NOT NULL,
-    amount REAL NOT NULL,
-    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'paid')),
-    FOREIGN KEY (order_id) REFERENCES orders (id),
-    FOREIGN KEY (agent_id) REFERENCES users (id)
-);
-
 -- Notifications
 CREATE TABLE notification_templates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -241,4 +215,4 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id)
-);
+);

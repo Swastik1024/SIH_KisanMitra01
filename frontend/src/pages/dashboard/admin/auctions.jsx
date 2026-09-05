@@ -147,7 +147,6 @@ export default function AdminAuctionsPage() {
                   <tr>
                     <th style={styles.th}>Product</th>
                     <th style={styles.th}>Farmer</th>
-                    <th style={styles.th}>Agent</th>
                     <th style={styles.th}>Base Price</th>
                     <th style={styles.th}>Highest Bid</th>
                     <th style={styles.th}>Bidder</th>
@@ -159,7 +158,7 @@ export default function AdminAuctionsPage() {
                 <tbody>
                   {auctions.length === 0 ? (
                     <tr>
-                      <td colSpan={9} style={styles.empty}>No auctions found</td>
+                    <td colSpan={8} style={styles.empty}>No auctions found</td>
                     </tr>
                   ) : (
                     auctions.map((a) => (
@@ -168,7 +167,6 @@ export default function AdminAuctionsPage() {
                           <strong>{a.product_name}</strong>
                         </td>
                         <td style={styles.td}>{a.farmer_name}</td>
-                        <td style={styles.td}>{a.agent_name}</td>
                         <td style={styles.td}>₹{a.base_price}</td>
                         <td style={styles.td}>₹{a.current_highest_bid || '—'}</td>
                         <td style={styles.td}>{a.current_highest_bidder || '—'}</td>

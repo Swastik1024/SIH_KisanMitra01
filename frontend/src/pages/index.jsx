@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import useAuthStore from '../store/authStore';
 
@@ -17,9 +17,9 @@ export default function Home() {
       const dashboardMap = {
         farmer: '/dashboard/farmer',
         trader: '/dashboard/trader',
-        agent: '/dashboard/agent',
         admin: '/dashboard/admin',
       };
+
       const target = dashboardMap[user.role];
       if (target) {
         router.replace(target);

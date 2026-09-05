@@ -4,11 +4,11 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta, timezone
 
 from ..database import get_db
-from ..models.user import User, TraderLicense, AgentProfile
+from ..models.user import User, TraderLicense
 from ..models.farmer import FarmerProfile
 from ..models.otp import OtpVerification
 from ..schemas.auth import (
-    FarmerRegister, TraderRegister, AgentCreate, AdminCreate,
+    FarmerRegister, TraderRegister, AdminCreate,
     LoginRequest, TokenResponse, UserOut,
     ForgotPasswordRequest, ResetPasswordRequest
 )
@@ -17,6 +17,7 @@ from ..core.deps import get_current_user, require_role
 from .otp import generate_otp
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
@@ -43,6 +44,7 @@ def create_user_common(db: Session, user_data: dict, role: str) -> User:
         role=role,
         language=user_data.get("language", "en"),
         location=user_data.get("location"),
+        pincode=user_data.get("pincode"),
         verified=False
     )
     db.add(user)
@@ -88,7 +90,8 @@ def register_farmer(data: FarmerRegister, db: Session = Depends(get_db)):
         "token_type": "bearer",
         "role": user.role,
         "user_id": user.id,
-        "name": user.name
+        "name": user.name,
+        "pincode": user.pincode,
     }
 
 @router.post("/register/trader", response_model=TokenResponse)
@@ -102,7 +105,8 @@ def register_trader(data: TraderRegister, db: Session = Depends(get_db)):
         "phone": data.phone,
         "password": data.password,
         "language": data.language,
-        "location": data.location
+        "location": data.location,
+        "pincode": data.pincode,
     }, role="trader")
 
     license = TraderLicense(
@@ -132,7 +136,8 @@ def register_trader(data: TraderRegister, db: Session = Depends(get_db)):
         "token_type": "bearer",
         "role": user.role,
         "user_id": user.id,
-        "name": user.name
+        "name": user.name,
+        "pincode": user.pincode,
     }
 
 @router.post("/login", response_model=TokenResponse)
@@ -140,13 +145,16 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    if user.role == "agent":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Agent role is no longer supported. Please contact admin.")
     token = create_access_token({"sub": str(user.id), "role": user.role})
     return {
         "access_token": token,
         "token_type": "bearer",
         "role": user.role,
         "user_id": user.id,
-        "name": user.name
+        "name": user.name,
+        "pincode": user.pincode,
     }
 
 class GoogleLoginRequest(BaseModel):
@@ -175,10 +183,9 @@ def google_login(data: GoogleLoginRequest, db: Session = Depends(get_db)):
         user = User(
             name=google_name,
             email=google_email,
-            phone="",
+            phone=None,          # Google accounts have no phone; NULL avoids UNIQUE clash
             password_hash=hash_password(random_pw),
             role="farmer",
-            is_active=True,
             language="en",
             location=""
         )
@@ -221,10 +228,10 @@ def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     db.add(record)
     db.commit()
 
-    # For demo, print OTP; real email integration can be added later
-    print(f"Password reset OTP for {data.email}: {otp}")
+    # For dev: print OTP to server logs. Integrate a real email provider for production.
+    print(f"[DEV] Password reset OTP for {data.email}: {otp}")
 
-    return {"message": "OTP sent to email", "otp": otp}
+    return {"message": "OTP sent to email"}
 
 @router.post("/reset-password")
 def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
@@ -300,46 +307,7 @@ def verify_token(current_user: User = Depends(get_current_user)):
         "verified": current_user.verified
     }
 
-@router.post("/admin/agents", response_model=TokenResponse)
-def create_agent(data: AgentCreate, db: Session = Depends(get_db), admin: User = Depends(require_role("admin"))):
-    if not is_otp_verified(data.email, db) or not is_otp_verified(data.phone, db):
-        raise HTTPException(
-            status_code=400,
-            detail="Email and phone must be verified via OTP before creating an agent."
-        )
 
-    user = create_user_common(db, data.dict(), role="agent")
-    user.verified = True
-    db.commit()
-
-    agent_profile = AgentProfile(
-        user_id=user.id,
-        service_area=data.service_area,
-        commission_rate=data.commission_rate,
-        qualifications=data.qualifications,
-        bank_name=data.bank_name,
-        account_holder=data.account_holder,
-        account_number=data.account_number,
-        ifsc_code=data.ifsc_code,
-        is_approved=True
-    )
-    db.add(agent_profile)
-    db.commit()
-
-    db.query(OtpVerification).filter(
-        OtpVerification.contact.in_([data.email, data.phone]),
-        OtpVerification.is_verified == True
-    ).delete(synchronize_session=False)
-    db.commit()
-
-    token = create_access_token({"sub": str(user.id), "role": user.role})
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "role": user.role,
-        "user_id": user.id,
-        "name": user.name
-    }
 
 @router.post("/admin/admins", response_model=TokenResponse)
 def create_admin(data: AdminCreate, db: Session = Depends(get_db), admin: User = Depends(require_role("admin"))):

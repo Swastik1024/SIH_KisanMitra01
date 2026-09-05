@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Header from '../../../components/common/Header';
@@ -20,16 +20,7 @@ export default function TraderAuctions() {
     return () => clearTimeout(timer);
   }, [hydrate]);
 
-  useEffect(() => {
-    if (!authReady) return;
-    if (!isAuthenticated || user?.role !== 'trader') {
-      router.replace('/login');
-      return;
-    }
-    fetchLiveAuctions();
-  }, [authReady, isAuthenticated, user, router]);
-
-  const fetchLiveAuctions = async () => {
+  const fetchLiveAuctions = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/api/auctions/live');
@@ -45,7 +36,16 @@ export default function TraderAuctions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    if (!authReady) return;
+    if (!isAuthenticated || user?.role !== 'trader') {
+      router.replace('/login');
+      return;
+    }
+    fetchLiveAuctions();
+  }, [authReady, isAuthenticated, user, router, fetchLiveAuctions]);
 
   if (!authReady || !isAuthenticated || user?.role !== 'trader') {
     return (

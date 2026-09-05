@@ -50,6 +50,7 @@ def get_farmer_stats(
 
     grade_counts = {grade: count for grade, count in quality_grades}
     grades_summary = {
+        "A+": grade_counts.get("A+", 0),
         "A": grade_counts.get("A", 0),
         "B": grade_counts.get("B", 0),
         "C": grade_counts.get("C", 0),
@@ -221,7 +222,6 @@ def accept_trader_bid_offer(
             product_id=auction.product_id,
             auction_id=auction.id,
             trader_id=bid.bidder_id,
-            agent_id=auction.agent_id,
             quantity=auction.product.quantity if auction.product else 1.0,
             total_price=bid.bid_amount,
             status="pending",

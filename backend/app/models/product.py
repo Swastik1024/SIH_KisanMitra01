@@ -71,8 +71,7 @@ class InspectionReport(Base):
     __tablename__ = "inspection_reports"
 
     id = Column(Integer, primary_key=True, index=True)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
-    agent_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False, unique=True)
     inspection_date = Column(DateTime(timezone=True), server_default=func.now())
     quality_grade = Column(String(10))
     freshness_score = Column(Float)
@@ -87,8 +86,7 @@ class InspectionReport(Base):
     final_base_price = Column(Float, nullable=False)
     notes = Column(Text)
 
-    # ✅ New column to store category-specific inspection parameters as JSON
+    # Category-specific inspection parameters as JSON
     inspection_data = Column(Text, nullable=True)
 
-    product = relationship("Product", back_populates="inspection_report")
-    agent = relationship("User", back_populates="inspections")
+    product = relationship("Product", back_populates="inspection_report")

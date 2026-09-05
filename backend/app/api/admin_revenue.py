@@ -4,7 +4,7 @@ from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
 from ..database import get_db
 from ..models.order import Order
-from ..models.payment import PaymentTransaction, Commission
+from ..models.payment import PaymentTransaction
 from ..models.user import User
 from ..core.deps import require_role
 
@@ -59,18 +59,9 @@ def get_revenue(
     # Average order value
     avg_order_value = float(total_revenue) / completed_orders if completed_orders else 0.0
 
-    # Total commission in period
-    total_commission = db.query(func.coalesce(func.sum(Commission.amount), 0.0)).join(
-        Order, Commission.order_id == Order.id
-    ).filter(
-        Order.created_at >= start_date,
-        Order.status.in_(["completed", "delivered"]),
-    ).scalar() or 0.0
+    total_commission = 0.0
+    pending_payouts = 0.0
 
-    # Pending payouts (sum of pending commissions)
-    pending_payouts = db.query(func.coalesce(func.sum(Commission.amount), 0.0)).filter(
-        Commission.status == "pending",
-    ).scalar() or 0.0
 
     # Revenue chart data (daily revenue for period)
     chart = []

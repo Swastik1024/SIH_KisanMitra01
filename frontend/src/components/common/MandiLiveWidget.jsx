@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Store, RefreshCw, Filter } from 'lucide-react';
 
@@ -10,7 +10,7 @@ export default function MandiLiveWidget() {
   const [selectedState, setSelectedState] = useState('All');
   const [loading, setLoading] = useState(true);
 
-  const fetchRates = async () => {
+  const fetchRates = useCallback(async () => {
     setLoading(true);
     try {
       const stateQuery = selectedState !== 'All' ? `?state=${selectedState}` : '';
@@ -22,11 +22,11 @@ export default function MandiLiveWidget() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedState]);
 
   useEffect(() => {
     fetchRates();
-  }, [selectedState]);
+  }, [selectedState, fetchRates]);
 
   const states = ['All', 'Maharashtra', 'Punjab', 'Uttar Pradesh', 'Gujarat', 'Karnataka', 'Madhya Pradesh'];
 

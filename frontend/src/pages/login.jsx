@@ -20,18 +20,26 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await api.post('/api/auth/login', form);
-      const { access_token, role, user_id, name } = res.data;
+      const { access_token, role, user_id, name, pincode } = res.data;
       localStorage.setItem('token', access_token);
-      setAuth({ id: user_id, name, role, email: form.email }, access_token);
+      // Store pincode for distance calculations in ProductCard
+      if (pincode) localStorage.setItem('user_pincode', pincode);
+      setAuth({ id: user_id, name, role, email: form.email, pincode: pincode || null }, access_token);
       toast.success(t('common.loginSuccess') || 'Login successful!');
 
       // Role-based redirect
       const dashboardMap = {
         farmer: '/dashboard/farmer',
         trader: '/dashboard/trader',
-        agent: '/dashboard/agent',
         admin: '/dashboard/admin',
       };
+
+      if (role === 'agent') {
+        useAuthStore.getState().logout();
+        toast.error('Agent role is no longer supported on this platform.');
+        return;
+      }
+
       const target = dashboardMap[role] || '/';
       router.push(target);
     } catch (error) {

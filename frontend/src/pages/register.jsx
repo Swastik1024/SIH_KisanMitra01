@@ -41,6 +41,7 @@ export default function Register() {
     licence_number: '',
     licence_expiry: '',
     location: '',
+    pincode: '',
     language: 'en',
     aadhar_document: '',
     pan_document: '',
@@ -114,6 +115,10 @@ export default function Register() {
     }
     if (!form.location) {
       toast.error(t('auth.enterLocation'));
+      return;
+    }
+    if (!form.pincode || form.pincode.length !== 6) {
+      toast.error('Please enter a valid 6-digit pincode');
       return;
     }
     if (role === 'trader' && !form.licence_number) {
@@ -372,6 +377,25 @@ export default function Register() {
                 placeholder={t('auth.locationPlaceholder')} style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = '#2d6a4f'}
                 onBlur={(e) => e.target.style.borderColor = '#e9ecef'} />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#2d3436', marginBottom: '8px' }}>📍 Pincode <span style={{ color: '#dc2626' }}>*</span></label>
+              <input
+                type="text"
+                value={form.pincode}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setForm({ ...form, pincode: val });
+                  if (val.length === 6) localStorage.setItem('user_pincode', val);
+                }}
+                placeholder="e.g. 411001"
+                maxLength={6}
+                style={inputStyle}
+                onFocus={(e) => e.target.style.borderColor = '#2d6a4f'}
+                onBlur={(e) => e.target.style.borderColor = '#e9ecef'}
+              />
+              <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', marginBottom: 0 }}>Used to show distance from farm to your location on product cards</p>
             </div>
 
             {role === 'trader' && (

@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { useLanguage } from '../../../context/LanguageContext';
 import { HiOutlinePlus, HiOutlineDocumentReport, HiOutlineX } from 'react-icons/hi';
 import FarmerBidsSelectionModal from '../../../components/common/FarmerBidsSelectionModal';
+import AiInspectionModal from '../../../components/common/AiInspectionModal';
 
 import {
   Search,
@@ -44,6 +45,7 @@ export default function FarmerListings() {
   const [favorites, setFavorites] = useState([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [inspectionProduct, setInspectionProduct] = useState(null);
+  const [aiInspectProduct, setAiInspectProduct] = useState(null);
   const [selectedAuctionId, setSelectedAuctionId] = useState(null);
 
   // Edit & Delete states
@@ -543,7 +545,7 @@ export default function FarmerListings() {
                               </button>
                             )}
 
-                            {product.inspection_report && (
+                            {product.inspection_report ? (
                               <button
                                 className="report-button"
                                 onClick={(e) => {
@@ -555,6 +557,20 @@ export default function FarmerListings() {
                                 <HiOutlineDocumentReport size={16} />
                                 <span>Report</span>
                               </button>
+                            ) : (
+                              product.status !== 'sold' && product.status !== 'canceled' && (
+                                <button
+                                  className="report-button"
+                                  style={{ backgroundColor: '#eff6ff', color: '#3b82f6', borderColor: '#bfdbfe' }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setAiInspectProduct(product);
+                                  }}
+                                  aria-label="Run AI Inspection"
+                                >
+                                  ✨ AI Inspect
+                                </button>
+                              )
                             )}
 
                             {/* Three Dots Menu Wrapper */}
@@ -635,6 +651,7 @@ export default function FarmerListings() {
           </div>
         )}
 
+        {/* View existing inspection report */}
         {inspectionProduct && inspectionProduct.inspection_report && (
           <div className="report-modal-overlay" onClick={() => setInspectionProduct(null)}>
             <div className="report-modal-card" onClick={(e) => e.stopPropagation()}>
@@ -665,6 +682,47 @@ export default function FarmerListings() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Run AI Inspection modal for products without a report */}
+        {aiInspectProduct && (
+          <AiInspectionModal
+            product={aiInspectProduct}
+            onClose={() => setAiInspectProduct(null)}
+            onApply={(report) => {
+              if (!report) return;
+              // Update the product in local state with the new inspection report + status
+              setProducts((prev) =>
+                prev.map((p) =>
+                  p.id === aiInspectProduct.id
+                    ? {
+                        ...p,
+                        status: report.is_fraud ? 'flagged' : 'verified',
+                        inspection_report: {
+                          quality_grade: report.quality_grade,
+                          final_base_price: report.final_base_price,
+                          freshness_score: report.freshness_score,
+                          defect_rate: report.defect_rate,
+                          size_uniformity: report.size_uniformity,
+                          color_ripeness: report.color_ripeness,
+                          moisture: report.moisture,
+                          confidence_score: report.confidence_score,
+                          recommendations: report.recommendations,
+                          notes: report.notes,
+                          inspection_data: {},
+                        },
+                      }
+                    : p
+                )
+              );
+              toast.success(
+                report.is_fraud
+                  ? '🚩 Product flagged as fraud.'
+                  : `✅ AI Inspection complete — Grade ${report.quality_grade}`
+              );
+              setAiInspectProduct(null);
+            }}
+          />
         )}
 
         {/* Edit Produce Modal */}

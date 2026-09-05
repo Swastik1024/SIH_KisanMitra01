@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Header from '../../components/common/Header';
 import api from '../../services/api';
@@ -38,7 +38,7 @@ export default function ProductDetailPage() {
     hydrate();
   }, [hydrate]);
 
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       const res = await api.get(`/api/products/${productId}`);
       const data = res.data;
@@ -55,7 +55,7 @@ export default function ProductDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId, router]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -65,7 +65,7 @@ export default function ProductDetailPage() {
     if (productId) {
       fetchProduct();
     }
-  }, [isAuthenticated, productId, router]);
+  }, [isAuthenticated, productId, router, fetchProduct]);
 
   // Auction countdown timer loop
   useEffect(() => {

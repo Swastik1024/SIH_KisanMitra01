@@ -32,14 +32,8 @@ const menuConfig = {
     { label: 'My Listings', icon: HiOutlineTag, href: '/dashboard/farmer/listings' },
     { label: 'Help & Support', icon: HiOutlineQuestionMarkCircle, href: '/help' },
   ],
-  agent: [
-    { label: 'My Profile', icon: HiOutlineUser, href: '/dashboard/agent/profile' },
-    { label: 'My Tasks', icon: HiOutlineClipboardList, href: '/dashboard/agent/tasks' },
-    { label: 'My Account', icon: HiOutlineCreditCard, href: '/dashboard/agent/account' },
-    { label: 'Commission Report', icon: HiOutlineTag, href: '/dashboard/agent/commissions' },
-    { label: 'Help & Support', icon: HiOutlineQuestionMarkCircle, href: '/help' },
-  ],
   admin: [
+
     { label: 'My Profile', icon: HiOutlineUser, href: '/dashboard/admin/profile' },
     { label: 'User Management', icon: HiOutlineClipboardList, href: '/dashboard/admin/users' },
     { label: 'Platform Analysis', icon: HiOutlineTag, href: '/dashboard/admin/analysis' },

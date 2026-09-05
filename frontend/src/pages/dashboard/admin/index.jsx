@@ -32,15 +32,6 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
-  const [showCreateAgent, setShowCreateAgent] = useState(false);
-
-  // Assignment modal state
-  const [showAssignModal, setShowAssignModal] = useState(false);
-  const [assignType, setAssignType] = useState(''); // 'inspection' or 'delivery'
-  const [selectedRequestId, setSelectedRequestId] = useState(null);
-  const [agentsList, setAgentsList] = useState([]);
-  const [selectedAgentId, setSelectedAgentId] = useState('');
-  const [assigning, setAssigning] = useState(false);
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -87,59 +78,6 @@ export default function AdminDashboard() {
     loadDashboard();
   }, [isAuthenticated, user, router, loadDashboard]);
 
-  const handleAgentCreated = () => {
-    setShowCreateAgent(false);
-    toast.success('Agent created successfully');
-    loadDashboard();
-  };
-
-  const fetchAgents = async () => {
-    try {
-      const response = await api.get('/api/admin/agents');
-      setAgentsList(response.data.agents);
-    } catch (error) {
-      console.error('Failed to fetch agents:', error);
-      toast.error('Failed to load agents');
-    }
-  };
-
-  const openAssignModal = (type, id) => {
-    setAssignType(type);
-    setSelectedRequestId(id);
-    setSelectedAgentId('');
-    setShowAssignModal(true);
-    fetchAgents();
-  };
-
-  const closeAssignModal = () => {
-    setShowAssignModal(false);
-    setSelectedRequestId(null);
-    setSelectedAgentId('');
-    setAssignType('');
-  };
-
-  const handleAssignSubmit = async () => {
-    if (!selectedAgentId) {
-      toast.error('Please select an agent');
-      return;
-    }
-
-    setAssigning(true);
-    try {
-      const base = assignType === 'inspection' ? 'inspection-requests' : 'delivery-requests';
-      await api.post(`/api/admin/${base}/${selectedRequestId}/assign`, {
-        agent_id: parseInt(selectedAgentId),
-      });
-      toast.success('Agent assigned successfully');
-      closeAssignModal();
-      loadDashboard();
-    } catch (error) {
-      console.error('Assign error:', error);
-      toast.error(error.response?.data?.detail || 'Failed to assign agent');
-    } finally {
-      setAssigning(false);
-    }
-  };
 
   const handleReject = async (type, id) => {
     if (!window.confirm('Are you sure you want to reject this request?')) {
@@ -181,6 +119,7 @@ export default function AdminDashboard() {
   const deliveryData = dashboard?.deliveries || {};
   const pendingInspectionRequests = dashboard?.pending_inspection_requests || [];
   const pendingDeliveryRequests = dashboard?.pending_delivery_requests || [];
+  const flaggedListings = dashboard?.flagged_listings || [];
 
   return (
     <>
@@ -212,14 +151,6 @@ export default function AdminDashboard() {
                 <option value="90d">Last 90 days</option>
                 <option value="1y">Last year</option>
               </select>
-
-              <button
-                onClick={() => setShowCreateAgent(true)}
-                style={styles.createAgentButton}
-              >
-                <HiOutlineUserAdd size={18} />
-                Create Agent
-              </button>
 
               <button
                 onClick={loadDashboard}
@@ -291,9 +222,15 @@ export default function AdminDashboard() {
             />
 
             <MiniStat
-              title="Pending Inspections"
-              value={stats.pending_inspections}
-              icon={<HiOutlineClipboardList />}
+              title="Verified Crops"
+              value={stats.verified_listings || 0}
+              icon={<HiOutlineCheckCircle />}
+            />
+
+            <MiniStat
+              title="Flagged Crops"
+              value={stats.flagged_listings || 0}
+              icon={<HiOutlineExclamationCircle />}
             />
 
             <MiniStat
@@ -301,6 +238,7 @@ export default function AdminDashboard() {
               value={stats.pending_deliveries}
               icon={<HiOutlineTruck />}
             />
+
 
             <MiniStat
               title="Completed Orders"
@@ -461,20 +399,12 @@ export default function AdminDashboard() {
                         <td style={styles.td}>{item.location || '—'}</td>
                         <td style={styles.td}>{formatDate(item.created_at)}</td>
                         <td style={styles.td}>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button
-                              onClick={() => openAssignModal('inspection', item.id)}
-                              style={styles.assignButton}
-                            >
-                              Assign
-                            </button>
-                            <button
-                              onClick={() => handleReject('inspection', item.id)}
-                              style={styles.rejectButton}
-                            >
-                              Reject
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleReject('inspection', item.id)}
+                            style={styles.rejectButton}
+                          >
+                            Reject
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -489,7 +419,7 @@ export default function AdminDashboard() {
             <div style={styles.cardHeader}>
               <div>
                 <h2 style={styles.cardTitle}>Pending Delivery Requests</h2>
-                <p style={styles.cardSubtitle}>Orders awaiting delivery assignment</p>
+                <p style={styles.cardSubtitle}>Orders awaiting delivery confirmation</p>
               </div>
               <HiOutlineTruck size={25} color="#2d6a4f" />
             </div>
@@ -520,20 +450,12 @@ export default function AdminDashboard() {
                         <td style={styles.td}>₹{formatNumber(order.total_price)}</td>
                         <td style={styles.td}><StatusBadge status={order.status} /></td>
                         <td style={styles.td}>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button
-                              onClick={() => openAssignModal('delivery', order.id)}
-                              style={styles.assignButton}
-                            >
-                              Assign
-                            </button>
-                            <button
-                              onClick={() => handleReject('delivery', order.id)}
-                              style={styles.rejectButton}
-                            >
-                              Reject
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleReject('delivery', order.id)}
+                            style={styles.rejectButton}
+                          >
+                            Cancel
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -542,6 +464,72 @@ export default function AdminDashboard() {
               </div>
             )}
           </section>
+
+          {/* AI FLAGGED LISTINGS */}
+          {flaggedListings.length > 0 && (
+            <section style={{ ...styles.card, border: '2px solid #fca5a5', background: '#fff5f5' }}>
+              <div style={styles.cardHeader}>
+                <div>
+                  <h2 style={{ ...styles.cardTitle, color: '#b91c1c' }}>
+                    🚨 AI-Flagged Listings ({flaggedListings.length})
+                  </h2>
+                  <p style={{ ...styles.cardSubtitle, color: '#ef4444' }}>
+                    Suspicious or AI-generated photos detected — admin review required
+                  </p>
+                </div>
+                <HiOutlineExclamationCircle size={28} color="#dc2626" />
+              </div>
+              <div style={styles.tableWrapper}>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.th}>Photo</th>
+                      <th style={styles.th}>Listing</th>
+                      <th style={styles.th}>Farmer</th>
+                      <th style={styles.th}>Phone</th>
+                      <th style={styles.th}>Qty / Price</th>
+                      <th style={styles.th}>Location</th>
+                      <th style={styles.th}>Flag Reason</th>
+                      <th style={styles.th}>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {flaggedListings.map((item) => (
+                      <tr key={item.id} style={{ background: '#fff1f2' }}>
+                        <td style={styles.td}>
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.product_name}
+                              style={{
+                                width: '52px', height: '52px', objectFit: 'cover',
+                                borderRadius: '10px', border: '2px solid #fca5a5'
+                              }}
+                            />
+                          ) : (
+                            <div style={{
+                              width: '52px', height: '52px', background: '#fee2e2',
+                              borderRadius: '10px', display: 'flex', alignItems: 'center',
+                              justifyContent: 'center', fontSize: '22px'
+                            }}>🚫</div>
+                          )}
+                        </td>
+                        <td style={styles.td}><strong>{item.product_name}</strong></td>
+                        <td style={styles.td}>{item.farmer_name}</td>
+                        <td style={styles.td}>{item.farmer_phone}</td>
+                        <td style={styles.td}>{item.quantity} &middot; ₹{formatNumber(item.price)}</td>
+                        <td style={styles.td}>{item.location}</td>
+                        <td style={{ ...styles.td, maxWidth: '200px', fontSize: '12px', color: '#b91c1c' }}>
+                          {item.flag_reason}
+                        </td>
+                        <td style={styles.td}>{formatDate(item.created_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
           {/* RECENT ORDERS */}
           <section style={styles.card}>
@@ -706,59 +694,6 @@ export default function AdminDashboard() {
         </div>
       </main>
 
-      {/* CREATE AGENT MODAL */}
-      {showCreateAgent && (
-        <CreateAgentModal
-          onClose={() => setShowCreateAgent(false)}
-          onSuccess={handleAgentCreated}
-        />
-      )}
-
-      {/* ASSIGN AGENT MODAL */}
-      {showAssignModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalCard}>
-            <div style={styles.modalHeader}>
-              <h2 style={styles.modalTitle}>
-                {assignType === 'inspection' ? 'Assign Inspection Agent' : 'Assign Delivery Agent'}
-              </h2>
-              <button style={styles.modalClose} onClick={closeAssignModal}>✕</button>
-            </div>
-
-            <div style={styles.modalForm}>
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Select Agent *</label>
-                <select
-                  value={selectedAgentId}
-                  onChange={(e) => setSelectedAgentId(e.target.value)}
-                  style={styles.formInput}
-                >
-                  <option value="">-- Select Agent --</option>
-                  {agentsList.map((agent) => (
-                    <option key={agent.id} value={agent.id}>
-                      {agent.name} ({agent.email})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={styles.modalActions}>
-                <button onClick={closeAssignModal} style={styles.cancelButton}>
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAssignSubmit}
-                  disabled={assigning}
-                  style={styles.submitButton}
-                >
-                  {assigning ? 'Assigning...' : 'Assign Agent'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <style jsx global>{`
         @keyframes spin {
           from {
@@ -797,460 +732,6 @@ export default function AdminDashboard() {
         }
       `}</style>
     </>
-  );
-}
-
-/* =========================================================
-   CREATE AGENT MODAL (3-Step)
-========================================================= */
-
-function CreateAgentModal({ onClose, onSuccess }) {
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    service_area: '',
-    qualifications: '',
-    bank_name: '',
-    account_holder: '',
-    account_number: '',
-    ifsc_code: '',
-  });
-  const [emailOtp, setEmailOtp] = useState('');
-  const [phoneOtp, setPhoneOtp] = useState('');
-  const [emailOtpSent, setEmailOtpSent] = useState(false);
-  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [phoneVerified, setPhoneVerified] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState({ email: false, phone: false });
-  const [verifyingOtp, setVerifyingOtp] = useState({ email: false, phone: false });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const sendOtp = async (type) => {
-    const contact = type === 'email' ? form.email : form.phone;
-    if (!contact) {
-      setError(`Please enter ${type} first.`);
-      return;
-    }
-    setSendingOtp((prev) => ({ ...prev, [type]: true }));
-    setError('');
-    try {
-      await api.post('/api/auth/otp/send', { contact });
-      if (type === 'email') setEmailOtpSent(true);
-      else setPhoneOtpSent(true);
-      toast.success(`OTP sent to ${contact}`);
-    } catch (err) {
-      console.error('Send OTP error:', err);
-      setError(err.response?.data?.detail || `Failed to send OTP to ${type}.`);
-    } finally {
-      setSendingOtp((prev) => ({ ...prev, [type]: false }));
-    }
-  };
-
-  const verifyOtp = async (type) => {
-    const contact = type === 'email' ? form.email : form.phone;
-    const otp = type === 'email' ? emailOtp : phoneOtp;
-    if (!contact || !otp) {
-      setError(`Please enter ${type} and OTP.`);
-      return;
-    }
-    setVerifyingOtp((prev) => ({ ...prev, [type]: true }));
-    setError('');
-    try {
-      await api.post('/api/auth/otp/verify', { contact, otp });
-      if (type === 'email') setEmailVerified(true);
-      else setPhoneVerified(true);
-      toast.success(`${type} verified successfully`);
-    } catch (err) {
-      console.error('Verify OTP error:', err);
-      setError(err.response?.data?.detail || `Failed to verify ${type} OTP.`);
-    } finally {
-      setVerifyingOtp((prev) => ({ ...prev, [type]: false }));
-    }
-  };
-
-  const validateStep1 = () => {
-    if (!form.name || !form.email || !form.phone || !form.password) {
-      setError('Please fill all required fields.');
-      return false;
-    }
-    if (form.password.length < 6 || form.password.length > 12) {
-      setError('Password must be 6-12 characters.');
-      return false;
-    }
-    setError('');
-    return true;
-  };
-
-  const validateStep2 = () => {
-    if (!emailVerified || !phoneVerified) {
-      setError('Please verify both email and phone with OTP.');
-      return false;
-    }
-    setError('');
-    return true;
-  };
-
-  const handleNext = () => {
-    if (step === 1 && validateStep1()) {
-      setStep(2);
-    } else if (step === 2 && validateStep2()) {
-      setStep(3);
-    }
-  };
-
-  const handleBack = () => {
-    setStep((prev) => Math.max(1, prev - 1));
-    setError('');
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError('');
-
-    try {
-      const payload = {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        password: form.password,
-        service_area: form.service_area,
-        qualifications: form.qualifications,
-        bank_name: form.bank_name,
-        account_holder: form.account_holder,
-        account_number: form.account_number,
-        ifsc_code: form.ifsc_code,
-      };
-
-      await api.post('/api/auth/admin/agents', payload);
-      onSuccess();
-    } catch (err) {
-      console.error('Create agent error:', err);
-      setError(
-        err.response?.data?.detail || 'Failed to create agent. Please try again.'
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div style={styles.modalOverlay}>
-      <div style={styles.modalCard}>
-        <div style={styles.modalHeader}>
-          <h2 style={styles.modalTitle}>
-            {step === 1
-              ? 'Create New Agent — Step 1: Basic Info'
-              : step === 2
-                ? 'Create New Agent — Step 2: OTP Verification'
-                : 'Create New Agent — Step 3: Qualifications & Bank'}
-          </h2>
-          <button style={styles.modalClose} onClick={onClose}>
-            ✕
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} style={styles.modalForm}>
-          {step === 1 && (
-            <>
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Full Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  style={styles.formInput}
-                  placeholder="Agent name"
-                  required
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Email *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  style={styles.formInput}
-                  placeholder="agent@example.com"
-                  required
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Phone *</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  style={styles.formInput}
-                  placeholder="9876543210"
-                  required
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Password *</label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    style={{ ...styles.formInput, paddingRight: '40px' }}
-                    placeholder="Min 6 characters"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    style={{
-                      position: 'absolute',
-                      right: '10px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: '#526058',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: 0,
-                      fontSize: '18px',
-                    }}
-                  >
-                    {showPassword ? <HiOutlineEyeOff /> : <HiOutlineEye />}
-                  </button>
-                </div>
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Service Area</label>
-                <input
-                  type="text"
-                  name="service_area"
-                  value={form.service_area}
-                  onChange={handleChange}
-                  style={styles.formInput}
-                  placeholder="City / Region"
-                />
-              </div>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Email OTP</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text"
-                    value={emailOtp}
-                    onChange={(e) => setEmailOtp(e.target.value)}
-                    style={{ ...styles.formInput, flex: 1 }}
-                    placeholder="Enter email OTP"
-                    disabled={!emailOtpSent || emailVerified}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => sendOtp('email')}
-                    disabled={sendingOtp.email || emailVerified}
-                    style={{
-                      ...styles.otpButton,
-                      background: emailVerified ? '#d4edda' : '#2d6a4f',
-                      color: emailVerified ? '#155724' : '#fff',
-                      cursor: emailVerified ? 'default' : 'pointer',
-                    }}
-                  >
-                    {emailVerified ? 'Verified ✓' : sendingOtp.email ? 'Sending...' : 'Send OTP'}
-                  </button>
-                </div>
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Verify Email OTP</label>
-                <button
-                  type="button"
-                  onClick={() => verifyOtp('email')}
-                  disabled={!emailOtpSent || emailVerified || verifyingOtp.email}
-                  style={{
-                    ...styles.otpButton,
-                    background: '#2d6a4f',
-                    color: '#fff',
-                    opacity: !emailOtpSent || emailVerified ? 0.5 : 1,
-                  }}
-                >
-                  {verifyingOtp.email ? 'Verifying...' : 'Verify Email OTP'}
-                </button>
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Phone OTP</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text"
-                    value={phoneOtp}
-                    onChange={(e) => setPhoneOtp(e.target.value)}
-                    style={{ ...styles.formInput, flex: 1 }}
-                    placeholder="Enter phone OTP"
-                    disabled={!phoneOtpSent || phoneVerified}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => sendOtp('phone')}
-                    disabled={sendingOtp.phone || phoneVerified}
-                    style={{
-                      ...styles.otpButton,
-                      background: phoneVerified ? '#d4edda' : '#2d6a4f',
-                      color: phoneVerified ? '#155724' : '#fff',
-                      cursor: phoneVerified ? 'default' : 'pointer',
-                    }}
-                  >
-                    {phoneVerified ? 'Verified ✓' : sendingOtp.phone ? 'Sending...' : 'Send OTP'}
-                  </button>
-                </div>
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Verify Phone OTP</label>
-                <button
-                  type="button"
-                  onClick={() => verifyOtp('phone')}
-                  disabled={!phoneOtpSent || phoneVerified || verifyingOtp.phone}
-                  style={{
-                    ...styles.otpButton,
-                    background: '#2d6a4f',
-                    color: '#fff',
-                    opacity: !phoneOtpSent || phoneVerified ? 0.5 : 1,
-                  }}
-                >
-                  {verifyingOtp.phone ? 'Verifying...' : 'Verify Phone OTP'}
-                </button>
-              </div>
-            </>
-          )}
-
-          {step === 3 && (
-            <>
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Qualifications</label>
-                <textarea
-                  name="qualifications"
-                  value={form.qualifications}
-                  onChange={handleChange}
-                  style={{ ...styles.formInput, height: '80px', padding: '10px' }}
-                  placeholder="e.g., B.Sc Agriculture, 5 years experience"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Bank Name</label>
-                <input
-                  type="text"
-                  name="bank_name"
-                  value={form.bank_name}
-                  onChange={handleChange}
-                  style={styles.formInput}
-                  placeholder="State Bank of India"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Account Holder Name</label>
-                <input
-                  type="text"
-                  name="account_holder"
-                  value={form.account_holder}
-                  onChange={handleChange}
-                  style={styles.formInput}
-                  placeholder="Agent Full Name"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Account Number</label>
-                <input
-                  type="text"
-                  name="account_number"
-                  value={form.account_number}
-                  onChange={handleChange}
-                  style={styles.formInput}
-                  placeholder="1234567890"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>IFSC Code</label>
-                <input
-                  type="text"
-                  name="ifsc_code"
-                  value={form.ifsc_code}
-                  onChange={handleChange}
-                  style={styles.formInput}
-                  placeholder="SBIN0001234"
-                />
-              </div>
-            </>
-          )}
-
-          {error && <div style={styles.formError}>{error}</div>}
-
-          <div style={styles.modalActions}>
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={handleBack}
-                style={styles.cancelButton}
-                disabled={submitting}
-              >
-                Back
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={onClose}
-              style={styles.cancelButton}
-              disabled={submitting}
-            >
-              Cancel
-            </button>
-
-            {step < 3 ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                style={styles.submitButton}
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                type="submit"
-                style={styles.submitButton}
-                disabled={submitting}
-              >
-                {submitting ? 'Creating...' : 'Create Agent'}
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-    </div>
   );
 }
 

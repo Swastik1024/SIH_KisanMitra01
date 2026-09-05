@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Header from '../../../components/common/Header';
@@ -21,7 +21,7 @@ export default function TraderOrders() {
 
   useEffect(() => { hydrate(); }, [hydrate]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/api/orders/my');
@@ -38,13 +38,13 @@ export default function TraderOrders() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, t]);
 
   useEffect(() => {
     if (!isAuthenticated) { router.push('/login'); return; }
     if (user?.role !== 'trader') { router.replace('/dashboard/' + user?.role); return; }
     fetchOrders();
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, fetchOrders]);
 
   const getPaymentColor = (status) => {
     switch (status) {

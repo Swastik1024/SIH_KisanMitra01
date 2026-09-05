@@ -11,6 +11,15 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Disabled: this rule incorrectly flags the valid pattern of calling
+      // useCallback-wrapped async fetch functions inside useEffect bodies.
+      "react-hooks/set-state-in-effect": "off",
+      // Disabled: anonymous default exports are used in i18n translation files.
+      "import/no-anonymous-default-export": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
