@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import en from '../i18n/en';
 import hi from '../i18n/hi';
 import mr from '../i18n/mr';
@@ -26,6 +26,31 @@ export function LanguageProvider({ children }) {
     return savedLang && languages[savedLang] ? savedLang : 'en';
   });
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && language) {
+      const gtLang = language === 'en' ? '' : `/en/${language}`;
+      const hostname = window.location.hostname;
+      document.cookie = `googtrans=${gtLang}; path=/; domain=${hostname}`;
+      document.cookie = `googtrans=${gtLang}; path=/;`;
+      
+      const checkCombo = setInterval(() => {
+        const combo = document.querySelector('.goog-te-combo');
+        if (combo) {
+          if (combo.value !== language) {
+            combo.value = language;
+            combo.dispatchEvent(new Event('change'));
+          }
+          clearInterval(checkCombo);
+        }
+      }, 300);
+      
+      const timeout = setTimeout(() => clearInterval(checkCombo), 5000);
+      return () => {
+        clearInterval(checkCombo);
+        clearTimeout(timeout);
+      };
+    }
+  }, [language]);
 
   const changeLanguage = (lang) => {
     setLanguage(lang);
@@ -47,6 +72,7 @@ export function LanguageProvider({ children }) {
       }
     }
   };
+
 
   const t = (key) => {
     const keys = key.split('.');
