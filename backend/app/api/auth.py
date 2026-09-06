@@ -1,5 +1,7 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from pydantic import BaseModel
 from datetime import datetime, timedelta, timezone
 
@@ -142,9 +144,56 @@ def register_trader(data: TraderRegister, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 def login(data: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == data.email).first()
-    if not user or not verify_password(data.password, user.password_hash):
+    req_email = str(data.email).strip().lower()
+    req_password = str(data.password).strip()
+
+    # Dynamic fallback check for Admin configured via environment variables
+    env_admin_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    env_admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
+
+    if env_admin_email and env_admin_password and req_email == env_admin_email and req_password == env_admin_password:
+        admin_user = db.query(User).filter(func.lower(User.email) == req_email).first()
+        if not admin_user:
+            admin_user = db.query(User).filter(User.role == "admin").first()
+        if admin_user:
+            admin_user.email = req_email
+            admin_user.role = "admin"
+            admin_user.password_hash = hash_password(req_password)
+            admin_user.verified = True
+            admin_user.is_active = True
+            db.commit()
+            db.refresh(admin_user)
+        else:
+            admin_user = User(
+                name="System Admin",
+                email=req_email,
+                phone=os.getenv("ADMIN_PHONE", "9999999999").strip(),
+                password_hash=hash_password(req_password),
+                role="admin",
+                language="en",
+                verified=True,
+                is_active=True
+            )
+            db.add(admin_user)
+            db.commit()
+            db.refresh(admin_user)
+
+        token = create_access_token({"sub": str(admin_user.id), "role": admin_user.role})
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "role": admin_user.role,
+            "user_id": admin_user.id,
+            "name": admin_user.name,
+            "pincode": admin_user.pincode,
+        }
+
+    # Standard database authentication with case-insensitive email match
+    user = db.query(User).filter(func.lower(User.email) == req_email).first()
+    if not user or not verify_password(req_password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This account has been deactivated.")
     if user.role == "agent":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Agent role is no longer supported. Please contact admin.")
     token = create_access_token({"sub": str(user.id), "role": user.role})

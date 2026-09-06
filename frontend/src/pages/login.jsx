@@ -18,13 +18,17 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const payload = {
+      email: form.email.trim(),
+      password: form.password,
+    };
     try {
-      const res = await api.post('/api/auth/login', form);
+      const res = await api.post('/api/auth/login', payload);
       const { access_token, role, user_id, name, pincode } = res.data;
       localStorage.setItem('token', access_token);
       // Store pincode for distance calculations in ProductCard
       if (pincode) localStorage.setItem('user_pincode', pincode);
-      setAuth({ id: user_id, name, role, email: form.email, pincode: pincode || null }, access_token);
+      setAuth({ id: user_id, name, role, email: payload.email, pincode: pincode || null }, access_token);
       toast.success(t('common.loginSuccess') || 'Login successful!');
 
       // Role-based redirect
@@ -141,7 +145,6 @@ export default function Login() {
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder=""
-                maxLength={12}
                 style={{
                   width: '100%',
                   padding: '12px 48px 12px 16px',
