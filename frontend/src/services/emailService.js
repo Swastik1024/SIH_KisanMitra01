@@ -5,9 +5,9 @@ const DEFAULT_TEMPLATE_ID = 'template_xpk351m';
 const DEFAULT_PUBLIC_KEY = 'cineb23-WtAow47rU';
 
 export const sendOtpEmail = async (userEmail, otpCode) => {
-  const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || DEFAULT_SERVICE_ID;
-  const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || DEFAULT_TEMPLATE_ID;
-  const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || DEFAULT_PUBLIC_KEY;
+  const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || process.env.NEXT_PUBLIC_EMAILJS_SERVICE || DEFAULT_SERVICE_ID;
+  const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE || DEFAULT_TEMPLATE_ID;
+  const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || process.env.NEXT_PUBLIC_EMAILJS_API_KEY || process.env.NEXT_PUBLIC_EMAILJS_KEY || process.env.NEXT_PUBLIC_EMAILJS_USER_ID || DEFAULT_PUBLIC_KEY;
 
   const templateParams = {
     to_email: userEmail,
