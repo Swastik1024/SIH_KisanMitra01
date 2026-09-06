@@ -54,7 +54,6 @@ except Exception as e:
 
 
 from .models.user import User
-from .models.farmer import FarmerProfile
 from .models.product import Category, CategoryTranslation
 from .core.security import hash_password
 

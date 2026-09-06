@@ -2,7 +2,6 @@ import os
 import sys
 from app.database import Base, engine, SessionLocal
 from app.models.user import User
-from app.models.farmer import FarmerProfile
 from app.models.product import Category, CategoryTranslation
 from app.models.settings import PlatformSetting
 from app.core.security import hash_password
@@ -57,48 +56,7 @@ def reset_database():
         else:
             print("⚠️ Admin:   Skipped (set ADMIN_EMAIL and ADMIN_PASSWORD in .env or environment to seed admin)")
 
-        # 2. Demo Farmer
-        farmer = User(
-            name="Ramesh Patil",
-            email="farmer@kisanmitra.com",
-            phone="9876543210",
-            password_hash=hash_password("Farmer@1234"),
-            role="farmer",
-            language="en",
-            location="Nashik, Maharashtra",
-            pincode="422001",
-            verified=True,
-            is_active=True
-        )
-        db.add(farmer)
-        db.commit()
-        db.refresh(farmer)
-
-        # Farmer profile
-        farmer_profile = FarmerProfile(
-            user_id=farmer.id,
-            land_size_acres=5.5,
-            primary_crops="Wheat, Onion, Soybean",
-            organic_certified=True
-        )
-        db.add(farmer_profile)
-
-        # 3. Demo Trader
-        trader = User(
-            name="Suresh Agarwal",
-            email="trader@kisanmitra.com",
-            phone="9812345678",
-            password_hash=hash_password("Trader@1234"),
-            role="trader",
-            language="en",
-            location="APMC Market, Pune",
-            pincode="411001",
-            verified=True,
-            is_active=True
-        )
-        db.add(trader)
-
-        # 4. Default Platform Settings
+        # 2. Default Platform Settings
         platform_setting = PlatformSetting(
             platform_name="KisanMitra",
             maintenance_mode=False,
@@ -115,8 +73,6 @@ def reset_database():
         print("---------------------------------------------------------------")
         if admin_email and admin_password:
             print(f"👑 Admin:   {admin_email}")
-        print("👨‍🌾 Farmer:  farmer@kisanmitra.com / Farmer@1234")
-        print("🏪 Trader:  trader@kisanmitra.com / Trader@1234")
         print("---------------------------------------------------------------")
 
     finally:
