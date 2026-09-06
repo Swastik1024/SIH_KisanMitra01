@@ -80,10 +80,11 @@ export default function Register() {
       if (type === 'email') {
         setOtpEmailSent(true);
         if (otpCode) {
-          sendOtpEmail(contact, otpCode).catch((err) => console.log('EmailJS delivery status:', err));
-          toast.success(`OTP Sent! Your verification code is: ${otpCode}`, {
-            duration: 9000,
-            icon: '📩',
+          setForm((prev) => ({ ...prev, otp_email: otpCode }));
+          sendOtpEmail(contact, otpCode).catch((err) => console.log('Email delivery status:', err));
+          toast.success(`OTP Auto-Filled: ${otpCode}`, {
+            duration: 8000,
+            icon: '✅',
           });
         } else {
           toast.success(t('auth.otpSent', { contact }));
@@ -91,8 +92,8 @@ export default function Register() {
       } else {
         setOtpPhoneSent(true);
         if (otpCode) {
-          toast.success(`SMS OTP Sent! Your code is: ${otpCode}`, {
-            duration: 9000,
+          toast.success(`SMS OTP: ${otpCode}`, {
+            duration: 8000,
             icon: '📱',
           });
         } else {
