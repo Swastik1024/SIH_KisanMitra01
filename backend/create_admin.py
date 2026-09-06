@@ -12,27 +12,30 @@ try:
     # Check if admin already exists
     existing_admin = db.query(User).filter(User.role == "admin").first()
     if existing_admin:
-        existing_admin.password_hash = hash_password("Admin@1234")
-        existing_admin.email = "admin@kisanmitra.com"
+        existing_admin.password_hash = hash_password("Swap@1234")
+        existing_admin.email = "admin.khetikart@gmail.com"
+        existing_admin.verified = True
+        existing_admin.is_active = True
         db.commit()
         print("[SUCCESS] Admin credentials verified/updated:")
         print(f"Email: {existing_admin.email}")
-        print("Password: Admin@1234")
+        print("Password: Swap@1234")
     else:
         admin = User(
             name="System Admin",
-            email="admin@kisanmitra.com",
+            email="admin.khetikart@gmail.com",
             phone="9999999999",
-            password_hash=hash_password("Admin@1234"),
+            password_hash=hash_password("Swap@1234"),
             role="admin",
             language="en",
             verified=True,
+            is_active=True,
         )
         db.add(admin)
         db.commit()
         print("[SUCCESS] Default admin created successfully")
-        print("Email: admin@kisanmitra.com")
-        print("Password: Admin@1234")
+        print("Email: admin.khetikart@gmail.com")
+        print("Password: Swap@1234")
 
 finally:
     db.close()

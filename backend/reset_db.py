@@ -41,9 +41,9 @@ def reset_database():
         # 1. Admin
         admin = User(
             name="System Admin",
-            email="admin@kisanmitra.com",
+            email="admin.khetikart@gmail.com",
             phone="9999999999",
-            password_hash=hash_password("Admin@1234"),
+            password_hash=hash_password("Swap@1234"),
             role="admin",
             language="en",
             verified=True,
