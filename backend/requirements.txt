@@ -11,3 +11,4 @@ razorpay==1.4.1
 cloudinary==1.36.0
 twilio==8.11.0
 requests==2.32.3
+psycopg2-binary>=2.9.9

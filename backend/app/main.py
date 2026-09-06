@@ -53,8 +53,80 @@ except Exception as e:
     print(f"[DB Auto-Migration] Notice: {e}")
 
 
+from .models.user import User
+from .models.farmer import FarmerProfile
+from .models.product import Category, CategoryTranslation
+from .core.security import hash_password
+
+def auto_seed_initial_data():
+    db = SessionLocal()
+    try:
+        # 1. Admin User
+        admin = db.query(User).filter(User.role == "admin").first()
+        if not admin:
+            admin = User(
+                name="System Admin",
+                email="admin@kisanmitra.com",
+                phone="9999999999",
+                password_hash=hash_password("Admin@1234"),
+                role="admin",
+                language="en",
+                verified=True,
+                is_active=True
+            )
+            db.add(admin)
+            db.commit()
+            print("[Auto-Seed] Created default admin: admin@kisanmitra.com")
+        
+        # 2. Default Categories
+        if db.query(Category).count() == 0:
+            DEFAULT_CATEGORIES = [
+                {"slug": "vegetables", "en": "Vegetables", "hi": "सब्जियां"},
+                {"slug": "fruits", "en": "Fruits", "hi": "फल"},
+                {"slug": "grains", "en": "Grains", "hi": "अनाज"},
+                {"slug": "pulses", "en": "Pulses", "hi": "दालें"},
+                {"slug": "herbs", "en": "Herbs & Spices", "hi": "जड़ी-बूटियाँ और मसाले"},
+                {"slug": "medical", "en": "Farm Medicine & Seeds", "hi": "कृषि दवाएं और बीज"},
+                {"slug": "instruments", "en": "Machinery & Instruments", "hi": "कृषि यंत्र और उपकरण"},
+            ]
+            for item in DEFAULT_CATEGORIES:
+                cat = Category(slug=item["slug"])
+                db.add(cat)
+                db.commit()
+                db.refresh(cat)
+                db.add_all([
+                    CategoryTranslation(category_id=cat.id, language="en", name=item["en"]),
+                    CategoryTranslation(category_id=cat.id, language="hi", name=item["hi"])
+                ])
+            db.commit()
+            print("[Auto-Seed] Seeded default product categories")
+
+        # 3. Platform Settings
+        if not db.query(PlatformSetting).first():
+            db.add(PlatformSetting(
+                platform_name="KisanMitra",
+                maintenance_mode=False,
+                allow_new_registrations=True,
+                commission_rate=2.5,
+                max_auction_duration_hours=72,
+                support_email="support@kisanmitra.com",
+                support_phone="+91 1800 123 4567"
+            ))
+            db.commit()
+            print("[Auto-Seed] Seeded default platform settings")
+
+    except Exception as e:
+        db.rollback()
+        print(f"[Auto-Seed] Notice: {e}")
+    finally:
+        db.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Auto-seed database tables and admin user on startup
+    auto_seed_initial_data()
+
     # Startup: validate config and launch background tasks
     if settings.SECRET_KEY == "your-secret-key-change-in-production":
         import os

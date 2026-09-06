@@ -5,7 +5,10 @@ load_dotenv()
 
 class Settings:
     PROJECT_NAME = "AgriMart"
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./agrimart.db")
+    _raw_db_url = os.getenv("DATABASE_URL", "sqlite:///./agrimart.db")
+    if _raw_db_url.startswith("postgres://"):
+        _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL = _raw_db_url
     SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 hours — prevents mid-session logout during auctions/listings
