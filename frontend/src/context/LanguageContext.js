@@ -20,11 +20,16 @@ const defaultLanguage = {
 const LanguageContext = createContext(defaultLanguage);
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState(() => {
-    if (typeof window === 'undefined') return 'en';
-    const savedLang = localStorage.getItem('language');
-    return savedLang && languages[savedLang] ? savedLang : 'en';
-  });
+  const [language, setLanguage] = useState('en');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('language');
+      if (savedLang && languages[savedLang]) {
+        setLanguage(savedLang);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && language) {
