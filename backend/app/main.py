@@ -58,17 +58,37 @@ from .models.farmer import FarmerProfile
 from .models.product import Category, CategoryTranslation
 from .core.security import hash_password
 
+import secrets
+import string
+
 def auto_seed_initial_data():
     db = SessionLocal()
     try:
-        # 1. Admin User
+        # 1. Admin User (Configurable via Environment Variables for Security)
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@kisanmitra.com").strip()
+        admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
+
         admin = db.query(User).filter(User.role == "admin").first()
         if not admin:
+            # If no password set in env, generate a random one in production or use default for dev
+            if not admin_password:
+                if os.getenv("ENVIRONMENT") == "production":
+                    alphabet = string.ascii_letters + string.digits + "!@#$%^"
+                    admin_password = ''.join(secrets.choice(alphabet) for _ in range(16))
+                    print("=" * 60)
+                    print("🔐 [SECURITY] Generated random Admin Password (visible only in private server logs):")
+                    print(f"📧 Email:    {admin_email}")
+                    print(f"🔑 Password: {admin_password}")
+                    print("💡 TIP: Set ADMIN_PASSWORD in your Render Environment Variables to use your own password.")
+                    print("=" * 60)
+                else:
+                    admin_password = "Admin@1234"
+
             admin = User(
                 name="System Admin",
-                email="admin@kisanmitra.com",
+                email=admin_email,
                 phone="9999999999",
-                password_hash=hash_password("Admin@1234"),
+                password_hash=hash_password(admin_password),
                 role="admin",
                 language="en",
                 verified=True,
@@ -76,7 +96,7 @@ def auto_seed_initial_data():
             )
             db.add(admin)
             db.commit()
-            print("[Auto-Seed] Created default admin: admin@kisanmitra.com")
+            print(f"[Auto-Seed] Initialized admin user: {admin_email}")
         
         # 2. Default Categories
         if db.query(Category).count() == 0:
