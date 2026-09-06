@@ -76,15 +76,29 @@ export default function Register() {
         return;
       }
       const res = await api.post('/api/auth/otp/send', { contact });
+      const otpCode = res.data?.otp;
       if (type === 'email') {
         setOtpEmailSent(true);
-        if (res.data?.otp) {
-          sendOtpEmail(contact, res.data.otp);
+        if (otpCode) {
+          sendOtpEmail(contact, otpCode).catch((err) => console.log('EmailJS delivery status:', err));
+          toast.success(`OTP Sent! Your verification code is: ${otpCode}`, {
+            duration: 9000,
+            icon: '📩',
+          });
+        } else {
+          toast.success(t('auth.otpSent', { contact }));
         }
       } else {
         setOtpPhoneSent(true);
+        if (otpCode) {
+          toast.success(`SMS OTP Sent! Your code is: ${otpCode}`, {
+            duration: 9000,
+            icon: '📱',
+          });
+        } else {
+          toast.success(t('auth.otpSent', { contact }));
+        }
       }
-      toast.success(t('auth.otpSent', { contact }));
     } catch (error) {
       toast.error(error.response?.data?.detail || t('auth.otpSendFailed'));
     }
