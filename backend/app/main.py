@@ -1,9 +1,13 @@
+import os
 import asyncio
+import secrets
+import string
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 
 from .database import engine, Base, SessionLocal
 from .config import settings
@@ -26,8 +30,9 @@ from .api import farmer_transactions
 from .api import support
 from .api import ai_inspection, price_prediction, mandi, weather_advisory, db_management, notifications
 from .api import doc_verify
-
-from sqlalchemy import text
+from .models.user import User
+from .models.product import Category, CategoryTranslation
+from .core.security import hash_password
 
 # Create database tables if they don't exist
 Base.metadata.create_all(bind=engine)
@@ -52,13 +57,6 @@ try:
 except Exception as e:
     print(f"[DB Auto-Migration] Notice: {e}")
 
-
-from .models.user import User
-from .models.product import Category, CategoryTranslation
-from .core.security import hash_password
-
-import secrets
-import string
 
 def auto_seed_initial_data():
     db = SessionLocal()
@@ -145,7 +143,6 @@ async def lifespan(app: FastAPI):
 
     # Startup: validate config and launch background tasks
     if settings.SECRET_KEY == "your-secret-key-change-in-production":
-        import os
         if os.getenv("ENVIRONMENT", "development") == "production":
             raise RuntimeError("SECRET_KEY must be set to a secure value in production!")
         else:
@@ -157,9 +154,16 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
 # Configure CORS
+cors_origins_env = os.getenv("CORS_ORIGINS", "")
+allowed_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()] if cors_origins_env else [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"^https:\/\/.*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
