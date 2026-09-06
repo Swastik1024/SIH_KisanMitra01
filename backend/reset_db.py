@@ -37,19 +37,25 @@ def reset_database():
             ])
         db.commit()
 
-        print("👤 [4/4] Seeding default users (Admin, Farmer, Trader)...")
-        # 1. Admin
-        admin = User(
-            name="System Admin",
-            email="admin.khetikart@gmail.com",
-            phone="9999999999",
-            password_hash=hash_password("Swap@1234"),
-            role="admin",
-            language="en",
-            verified=True,
-            is_active=True
-        )
-        db.add(admin)
+        print("👤 [4/4] Seeding default users...")
+        # 1. Admin (from Environment Variables if provided)
+        admin_email = os.getenv("ADMIN_EMAIL")
+        admin_password = os.getenv("ADMIN_PASSWORD")
+        if admin_email and admin_password:
+            admin = User(
+                name="System Admin",
+                email=admin_email,
+                phone=os.getenv("ADMIN_PHONE", "9999999999"),
+                password_hash=hash_password(admin_password),
+                role="admin",
+                language="en",
+                verified=True,
+                is_active=True
+            )
+            db.add(admin)
+            print(f"👑 Admin:   {admin_email} (from environment)")
+        else:
+            print("⚠️ Admin:   Skipped (set ADMIN_EMAIL and ADMIN_PASSWORD in .env or environment to seed admin)")
 
         # 2. Demo Farmer
         farmer = User(
@@ -107,7 +113,8 @@ def reset_database():
         db.commit()
         print("\n✨ DATABASE HAS BEEN COMPLETELY CLEARED & CLEANLY INITIALIZED!")
         print("---------------------------------------------------------------")
-        print("👑 Admin:   admin@kisanmitra.com  / Admin@1234")
+        if admin_email and admin_password:
+            print(f"👑 Admin:   {admin_email}")
         print("👨‍🌾 Farmer:  farmer@kisanmitra.com / Farmer@1234")
         print("🏪 Trader:  trader@kisanmitra.com / Trader@1234")
         print("---------------------------------------------------------------")

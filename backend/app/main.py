@@ -64,33 +64,36 @@ import string
 def auto_seed_initial_data():
     db = SessionLocal()
     try:
-        # 1. Admin User
-        admin_email = os.getenv("ADMIN_EMAIL", "admin.khetikart@gmail.com").strip()
-        admin_password = os.getenv("ADMIN_PASSWORD", "Swap@1234").strip()
+        # 1. Admin User (Configured purely through Environment Variables)
+        admin_email = os.getenv("ADMIN_EMAIL", "").strip()
+        admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
 
-        admin = db.query(User).filter((User.email == admin_email) | (User.role == "admin")).first()
-        if admin:
-            admin.email = admin_email
-            admin.role = "admin"
-            admin.password_hash = hash_password(admin_password)
-            admin.verified = True
-            admin.is_active = True
-            db.commit()
-            print(f"[Auto-Seed] Verified/Updated admin account: {admin_email}")
+        if admin_email and admin_password:
+            admin = db.query(User).filter((User.email == admin_email) | (User.role == "admin")).first()
+            if admin:
+                admin.email = admin_email
+                admin.role = "admin"
+                admin.password_hash = hash_password(admin_password)
+                admin.verified = True
+                admin.is_active = True
+                db.commit()
+                print(f"[Auto-Seed] Verified/Updated admin account from environment: {admin_email}")
+            else:
+                admin = User(
+                    name="System Admin",
+                    email=admin_email,
+                    phone=os.getenv("ADMIN_PHONE", "9999999999").strip(),
+                    password_hash=hash_password(admin_password),
+                    role="admin",
+                    language="en",
+                    verified=True,
+                    is_active=True
+                )
+                db.add(admin)
+                db.commit()
+                print(f"[Auto-Seed] Created admin user from environment: {admin_email}")
         else:
-            admin = User(
-                name="System Admin",
-                email=admin_email,
-                phone="9999999999",
-                password_hash=hash_password(admin_password),
-                role="admin",
-                language="en",
-                verified=True,
-                is_active=True
-            )
-            db.add(admin)
-            db.commit()
-            print(f"[Auto-Seed] Created default admin: {admin_email}")
+            print("[Auto-Seed] ADMIN_EMAIL / ADMIN_PASSWORD not set in environment. Skipping admin auto-seed.")
         
         # 2. Default Categories
         if db.query(Category).count() == 0:
